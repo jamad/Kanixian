@@ -273,9 +273,9 @@ class App():
         self.is_gaming = True
         self.init_squad()
         self.counter = 0
-        score = 0
 
     def update(self):
+        global score
         ### ★の更新
         for star in stars:
             star.update()
@@ -284,6 +284,7 @@ class App():
                 stars.append(Star())
         ### ゲーム開始の判定
         if self.is_gaming == False and pyxel.btn(pyxel.KEY_RETURN):
+            score = 0
             self.init_stage()
             return
         ### ゲーム開始してないとき
