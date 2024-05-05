@@ -355,6 +355,7 @@ class App():
 
         ### ゲーム開始してないときの描画
         if self.is_gaming == False:
+            pyxel.text(220,240,"V.1.2",7)
             pyxel.text(86,160,"Push Enter to Start",pyxel.frame_count%16)
             pyxel.blt(4,100,2,0,32,256,48,0)
             pyxel.blt(48,10,1,48,0,64,16,0)
