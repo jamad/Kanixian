@@ -55,7 +55,7 @@ class Squad():   # 分隊
             self.x = self.start_x
             self.dx = -self.dx
         ### 移動開始させるかどうかの判定
-        if self.counter % 48 == 0:
+        if self.counter % (50 - self.stage_number*3) == 0:
             if teki_movable > 0:
                 gyou = self.list[pyxel.rndi(0,3)]
                 while len(gyou) == 0:
