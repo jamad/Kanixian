@@ -6,6 +6,8 @@
 
 ![スクリーンショット](https://cdn-ak.f.st-hatena.com/images/fotolife/H/Hiesuke/20240521/20240521231058.png)
 
+![Animation](https://cdn-ak.f.st-hatena.com/images/fotolife/H/Hiesuke/20240522/20240522233646.gif)
+
 ## 遊び方など
 - ゲームパッドかキーボードで操作できます。
 - 飛んでくる敵を打つ！だけです。
@@ -20,3 +22,4 @@
 - [ハンドヘルドゲーム機用(pyxappファイル)](https://github.com/Hiekichi/Kanixian/blob/main/Kanixian.pyxapp)
 
 
+キャプチャービームは出せません（あたりまえ）
