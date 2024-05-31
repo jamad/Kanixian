@@ -4,7 +4,7 @@ import math
 APP_WIDTH = 240
 APP_HEIGHT = 240
 
-TAMALIMIT = 1 # 変えちゃダメ
+TAMALIMIT = 1
 
 KEY = [pyxel.KEY_DOWN,pyxel.KEY_UP,pyxel.KEY_RIGHT,pyxel.KEY_LEFT]
 D =   [[0,1],[0,-1],[1,0],[-1,0]  , [0,0]]
@@ -14,7 +14,7 @@ GPAD = [pyxel.GAMEPAD1_BUTTON_DPAD_DOWN,
         pyxel.GAMEPAD1_BUTTON_DPAD_LEFT]
 LAXIS = [pyxel.GAMEPAD1_AXIS_LEFTY,pyxel.GAMEPAD1_AXIS_LEFTY,
          pyxel.GAMEPAD1_AXIS_LEFTX,pyxel.GAMEPAD1_AXIS_LEFTX]
-LAXIS_RANGE = [[30,36000],[-36000,-30],[30,36000],[-36000,-30]]
+LAXIS_RANGE = [[10000,36000],[-36000,-10000],[10000,36000],[-36000,-10000]]
 
 stars = []
 bullets = []
@@ -44,6 +44,7 @@ class Squad():   # 分隊
         self.dx = 0.2
         self.list = [[],[],[],[]]
         self.counter = 1
+        self.interval = 60
     def update(self):
         global teki_movable,score,messages
         self.counter += 1
@@ -55,7 +56,7 @@ class Squad():   # 分隊
             self.x = self.start_x
             self.dx = -self.dx
         ### 移動開始させるかどうかの判定
-        if self.counter % (50 - self.stage_number*3) == 0:
+        if self.counter % self.interval == 0:
             if teki_movable > 0:
                 gyou = self.list[pyxel.rndi(0,3)]
                 while len(gyou) == 0:
@@ -247,7 +248,11 @@ class Myship():
         self.dir = 4 #移動無し
     def update(self):
         self.x += D[self.dir][0] * 2
-        self.y += D[self.dir][1] * 2
+        #self.y += D[self.dir][1] * 2
+        if self.x < 0:
+            self.x = 0
+        elif self.x > 223:
+            self.x = 223
     def draw(self):
         pyxel.blt(self.x,self.y,0,self.dir*16,16,16,24,0)
 
@@ -260,13 +265,16 @@ class App():
         pyxel.load("kani.pyxres")
         for i in range(50):       ### 背景として流れる★
             stars.append(Star())
-        self.hiscore = 0 # まだ使ってない
+        with open("hiscore.txt","r") as f:
+            self.hiscore = int(f.readline())
         self.init_game()
         pyxel.run(self.update,self.draw)
 
     def init_game(self):
         if score > self.hiscore:
             self.hiscore = score
+            with open("hiscore.txt","w") as f:
+                f.write(str(self.hiscore))
         self.stage_number = 0
         self.is_gaming = False
 
@@ -276,6 +284,7 @@ class App():
         tekibullets = []
         self.stage_number += 1
         teki_movable = self.stage_number + 1
+        squad.interval = 120 - self.stage_number*6
         self.is_gaming = True
         self.init_squad()
         self.counter = 0
@@ -289,7 +298,7 @@ class App():
                 stars.remove(star)
                 stars.append(Star())
         ### ゲーム開始の判定
-        if self.is_gaming == False and (pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_A) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_B) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_START)):
+        if self.is_gaming == False and (pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_START)):
             score = 0
             self.init_stage()
             return
@@ -303,11 +312,13 @@ class App():
         ### ゲームオーバーの判定
         for bullet in tekibullets:
             if bullet.check_hit(myship.x,myship.y):
+                pyxel.play(2,2)
                 self.init_game()
                 return
         for y in range(4):
             for teki in squad.list[y]:
                 if teki.check_hit(myship.x,myship.y):
+                    pyxel.play(2,2)
                     self.init_game()
                     return
 
