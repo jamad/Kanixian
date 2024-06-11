@@ -72,7 +72,7 @@ class Squad():   # 分隊
                         bullet_list.remove(bullet)
                         pyxel.play(1,1)
 
-squad_inst = Squad() 
+enemy_group = Squad() 
 
 class Teki():
     def __init__(self,rx,ry,num): # rx,ry: relative position in group, num: row id from top
@@ -82,8 +82,8 @@ class Teki():
         self.cnt = pyxel.rndi(0,60) # used for animation pattern randomness
         self.is_flying = False # flying
         self.is_return = False
-        self.x = squad_inst.x + self.rposx # final position to draw
-        self.y = squad_inst.y + self.rposy
+        self.x = enemy_group.x + self.rposx # final position to draw
+        self.y = enemy_group.y + self.rposy
         self.trajectory = []
 
     def update(self):
@@ -94,10 +94,10 @@ class Teki():
         if self.is_return: 
             # enemy is out of screen, returning to the default position
             
-            self.x = (self.x + squad_inst.x + self.rposx) / 2
-            self.y = (self.y + squad_inst.y + self.rposy) / 2
+            self.x = (self.x + enemy_group.x + self.rposx) / 2
+            self.y = (self.y + enemy_group.y + self.rposy) / 2
 
-            if round(self.x) == round(squad_inst.x + self.rposx) and round(self.y) == round(squad_inst.y + self.rposy):
+            if round(self.x) == round(enemy_group.x + self.rposx) and round(self.y) == round(enemy_group.y + self.rposy):
                 self.is_flying = False
                 self.is_return = False
 
@@ -136,8 +136,8 @@ class Teki():
             
         else:
             # default behavior : enemy moves as the group
-            self.x = squad_inst.x + self.rposx
-            self.y = squad_inst.y + self.rposy
+            self.x = enemy_group.x + self.rposx
+            self.y = enemy_group.y + self.rposy
 
     def draw(self):
         # pyxel.blt(x,y,atlas_image,u,v,w,h, mask_color) 
@@ -272,20 +272,11 @@ class App():
         stage_number += 1
         teki_flyable = stage_number + 1
         self.counter = 0
-        
-
-        squad_inst.list = [
-            [Teki(x*10,0,0) for x in (4,10)],
-            [Teki(x*10,20,1) for x in range(2,14,2)],
-            [Teki(x*10,40,2) for x in range(0,16,2)],
-            [Teki(x*10,60,3) for x in range(0,16,2)],
-        ]
+        enemy_group.list = [[Teki(x*10,i*20,i) for x in R] for i, R in enumerate( ((4,10),range(2,14,2),range(0,16,2), range(0,16,2) ))]
 
     def update(self):
         global score
 
-
-        ### ★の更新
         for star in star_list:
             star.update()
             if star.y > APP_HEIGHT:
@@ -301,12 +292,12 @@ class App():
             return
         
         ### ステージクリアの判定
-        if sum(map(len,squad_inst.list))==0:
+        if sum(map(len,enemy_group.list))==0:
             self.init_stage()
             return
             
         ### ゲームオーバーの判定
-        obstacles=tekibullets+sum(squad_inst.list,[])
+        obstacles=tekibullets+sum(enemy_group.list,[])
         for obs in obstacles:
             if obs.check_hit(myship.x,myship.y):
                 pyxel.play(2,2)
@@ -328,8 +319,8 @@ class App():
         [message_list.remove(mes)for mes in message_list if mes.cnt < 0]    ### メッセージの生存確認
         myship.update()                                             ### 自機の更新 # position by direction
         [bullet.update() for bullet in bullet_list+tekibullets]         ### 弾の更新
-        squad_inst.update()                                              ### 分隊の更新
-        [teki.update() for tekis in squad_inst.list for teki in tekis]   ### 敵の更新
+        enemy_group.update()                                              ### 分隊の更新
+        [teki.update() for tekis in enemy_group.list for teki in tekis]   ### 敵の更新
         [mes.update() for mes in message_list]                          ### メッセージの更新            
 
     def draw(self):
@@ -344,7 +335,7 @@ class App():
         if self.is_gaming:            
             myship.draw()                                           ### 自機の描画
             [bullet.draw() for bullet in bullet_list+tekibullets]       ### 弾の描画
-            [teki.draw() for tekis in squad_inst.list for teki in tekis] ### 敵の描画
+            [teki.draw() for tekis in enemy_group.list for teki in tekis] ### 敵の描画
             [mes.draw() for mes in message_list]                    ### メッセージの描画
 
             pyxel.text( APP_WIDTH//8*7,10,   f"{score}" ,7) # score info
