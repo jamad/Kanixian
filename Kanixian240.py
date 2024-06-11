@@ -10,7 +10,7 @@ LAXIS_RANGE = [[10000,36000],[-36000,-10000],[10000,36000],[-36000,-10000]]
 stars = []
 bullets = []
 tekibullets = []
-messages = []
+message_list = []
 score = 0
 teki_flyable = 0 # what is it for? it can be 1,2,3,4,5,...
 
@@ -37,7 +37,7 @@ class Squad():   # 分隊
         self.interval = 60 # attach interval
 
     def update(self):
-        global teki_flyable,score,messages
+        global teki_flyable,score,message_list
         self.counter += 1
         self.x += self.dx
         if self.x > self.start_x + 60:
@@ -77,7 +77,7 @@ class Squad():   # 分隊
 
                         else:ds=10
                         score += ds
-                        messages.append(Message(teki.x+4+2*(ds==150),teki.y+6,f"{ds}"))
+                        message_list.append(Message(teki.x+4+2*(ds==150),teki.y+6,f"{ds}"))
                         self.list[y].remove(teki)
                         bullets.remove(bullet)
                         pyxel.play(1,1)
@@ -315,12 +315,12 @@ class App():
         [bullets.remove(bullet)for bullet in bullets if bullet.y < -10]
         [tekibullets.remove(bullet) for bullet in tekibullets if bullet.y > APP_HEIGHT + 10]
 
-        [messages.remove(mes)for mes in messages if mes.cnt < 0]    ### メッセージの生存確認
+        [message_list.remove(mes)for mes in message_list if mes.cnt < 0]    ### メッセージの生存確認
         myship.update()                                             ### 自機の更新
         [bullet.update() for bullet in bullets+tekibullets]         ### 弾の更新
         squad.update()                                              ### 分隊の更新
         [teki.update() for tekis in squad.list for teki in tekis]   ### 敵の更新
-        [mes.update() for mes in messages]                          ### メッセージの更新            
+        [mes.update() for mes in message_list]                          ### メッセージの更新            
 
     def draw(self):
         pyxel.cls(0)
@@ -331,7 +331,7 @@ class App():
             myship.draw()                                           ### 自機の描画
             [bullet.draw() for bullet in bullets+tekibullets]       ### 弾の描画
             [teki.draw() for tekis in squad.list for teki in tekis] ### 敵の描画
-            [mes.draw() for mes in messages]                        ### メッセージの描画
+            [mes.draw() for mes in message_list]                        ### メッセージの描画
 
             ### ステージ番号の描画
             pyxel.blt(10,10,1,0,0,40,16,0)
