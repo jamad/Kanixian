@@ -134,12 +134,9 @@ class Teki():
 
     def draw(self):
         if self.is_move:
-            if self.dx > 0:
-                pyxel.blt(self.x,self.y,0,48,48+self.num*16,16,16,0)
-            else:
-                pyxel.blt(self.x,self.y,0,32,48+self.num*16,16,16,0)
+            pyxel.blt(self.x,self.y,0,  32+16*(0<self.dx),    48+self.num*16,16,16,0)
         else:
-            pyxel.blt(self.x,self.y,0,(self.cnt//24)%2*16,48+self.num*16,16,16,0)
+            pyxel.blt(self.x,self.y,0,  (self.cnt//24)%2*16,  48+self.num*16,16,16,0)
 
     def start_core(self): # shared logic
         self.dest_list += [
@@ -325,7 +322,7 @@ class App():
         ### 弾の生存確認
         [bullets.remove(bullet)for bullet in bullets if bullet.y < -10]
         [tekibullets.remove(bullet) for bullet in tekibullets if bullet.y > APP_HEIGHT + 10]
-        
+
         [messages.remove(mes)for mes in messages if mes.cnt < 0]    ### メッセージの生存確認
         myship.update()                                             ### 自機の更新
         [bullet.update() for bullet in bullets+tekibullets]         ### 弾の更新
