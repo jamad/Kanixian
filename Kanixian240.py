@@ -1,5 +1,7 @@
 import pyxel
 
+debugdisp=False
+
 APP_WIDTH = APP_HEIGHT = 240
 CHAR_SIZE=16 
 
@@ -7,40 +9,41 @@ star_list = []
 message_list = []
 score = 0
 
-debugdisp=False
+stage_number=0 # used in App, Squad
+
 
 class Message():# hit score on screen 
     def __init__(self,x,y,message) -> None:
-        self.x = x
-        self.y = y
+        self.x, self.y = x, y
         self.cnt = 30 # timer 
         self.mes = message
     def update(self):
-        self.cnt -= 1 # timer decrement
         self.y -= 0.2 # position move
+        self.cnt -= 1 # timer decrement
     def draw(self):
         pyxel.text(self.x,self.y,self.mes,7)
 
 class Squad():   # 分隊
     def __init__(self) -> None:
-        #self.start_x = 12  # 分隊全体の左上の座標
-        self.x = 12
-        self.y = 16
+        self.x, self.y = 12, 16
         self.dx = 0.2
-        self.list = [[],[],[],[]]
+        self.list = [[],[],[],[]]# enemy arrays
         self.counter = 1
-        self.interval = 60 #  interval to attack
+        #self.interval = 60 #  interval to attack
 
     def update(self):
-        global teki_flyable,score,message_list
+        global teki_flyable,score,message_list, stage_number
         self.counter += 1
-        self.x += self.dx
 
+        self.x += self.dx # horizontal group move
         if 72 <self.x or self.x < 12: self.dx *= -1 # reverse direction
 
         ### 移動開始させるかどうかの判定
-        if self.counter % self.interval == 0:
 
+        attack_interval=max(1,60-stage_number*4)# dynamic interval dependent on stage number
+
+        if self.counter % attack_interval == 0:
+            print(f'debug teki_flyable:{teki_flyable} @ {self.counter}')
             if teki_flyable:
                 while(row:=self.list[pyxel.rndi(0,3)])==[]:continue # select non empty row at random 
                 col=pyxel.rndi(0,len(row)-1)# choose col at random
@@ -55,7 +58,7 @@ class Squad():   # 分隊
         ### list中の敵が弾に当たったかの判定と削除
         for y in reversed(range(4)):
             for teki in self.list[y]:
-                for bullet in bullets:
+                for bullet in bullet_list:
                     if bullet.check_hit(teki.x,teki.y):
 
                         if teki.is_flying:
@@ -66,7 +69,7 @@ class Squad():   # 分隊
                         score += ds
                         message_list.append(Message(teki.x+4+2*(ds==150),teki.y+6,f"{ds}"))
                         self.list[y].remove(teki)
-                        bullets.remove(bullet)
+                        bullet_list.remove(bullet)
                         pyxel.play(1,1)
 
 squad_inst = Squad() 
@@ -251,23 +254,26 @@ class App():
         pyxel.run(self.update,self.draw)
 
     def init_game(self):
+        global stage_number
+        stage_number=0
+
         if score > self.hiscore:
             self.hiscore = score
             with open("hiscore.txt","w") as f:
                 f.write(str(self.hiscore))
-        self.stage_number = 0
         self.is_gaming = False
 
         myship.__init__() # need this with vertical freedom, otherwise instant gameover 
 
     def init_stage(self):
-        global teki_flyable,bullets,tekibullets,score
+        global teki_flyable,bullet_list,tekibullets,score,stage_number
+        
+        bullet_list = []# need to empty otherwise, instant death could happen
+        tekibullets = []# need to empty otherwise, instant death could happen
     
-        bullets = []
-        tekibullets = []
-        self.stage_number += 1
-        teki_flyable = self.stage_number + 1
-        squad_inst.interval = 120 - self.stage_number*6 # interval changed dependent on stage_number
+        stage_number += 1
+        teki_flyable = stage_number + 1
+        squad_inst.interval = 120 - stage_number*6 # interval changed dependent on stage_number
         self.counter = 0
         
         squad_inst.list = [
@@ -314,21 +320,23 @@ class App():
 
         ### 弾発射の判定
         if pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_A) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_B):
-            bullets.append(Bullet(myship.x + 7,myship.y))
+            bullet_list.append(Bullet(myship.x + 7,myship.y))
             pyxel.play(0,0)
 
         ### 弾の生存確認
-        [bullets.remove(bullet)for bullet in bullets if bullet.y < -10]
+        [bullet_list.remove(bullet)for bullet in bullet_list if bullet.y < -10]
         [tekibullets.remove(bullet) for bullet in tekibullets if bullet.y > APP_HEIGHT + 10]
 
         [message_list.remove(mes)for mes in message_list if mes.cnt < 0]    ### メッセージの生存確認
         myship.update()                                             ### 自機の更新 # position by direction
-        [bullet.update() for bullet in bullets+tekibullets]         ### 弾の更新
+        [bullet.update() for bullet in bullet_list+tekibullets]         ### 弾の更新
         squad_inst.update()                                              ### 分隊の更新
         [teki.update() for tekis in squad_inst.list for teki in tekis]   ### 敵の更新
         [mes.update() for mes in message_list]                          ### メッセージの更新            
 
     def draw(self):
+        global stage_number
+
         pyxel.cls(0)
 
         # background
@@ -337,14 +345,14 @@ class App():
         # core contents
         if self.is_gaming:            
             myship.draw()                                           ### 自機の描画
-            [bullet.draw() for bullet in bullets+tekibullets]       ### 弾の描画
+            [bullet.draw() for bullet in bullet_list+tekibullets]       ### 弾の描画
             [teki.draw() for tekis in squad_inst.list for teki in tekis] ### 敵の描画
             [mes.draw() for mes in message_list]                    ### メッセージの描画
 
             pyxel.text( APP_WIDTH//8*7,10,   f"{score}" ,7) # score info
 
             ### ステージ番号の描画
-            pyxel.text(10,10,f"STAGE : {self.stage_number}",7)                             # `stage` info
+            pyxel.text(10,10,f"STAGE : {stage_number}",7)                             # `stage` info
             
         else:### ゲーム開始してないときの描画
             pyxel.text(82,150,"Push BUTTON to Start",pyxel.frame_count%16)  # push to start message
