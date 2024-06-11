@@ -1,10 +1,10 @@
 # Kanixian mod (wip)
 
 ## 概要
-- プログラミング学習用にfork 
+- fork して改変することでプログラミングを学習中
 
-## 遊び方など
-- ゲームパッド(anaglog-Stick or Dpad +  A/B) or キーボード (<> + Space)で操作。
+## 遊び方
+- ゲームパッド(anaglog-Stick / Dpad +  A / B) or キーボード (<> + Space) で操作可能
 
 ## Note during the modding
 -  https://github.com/jamad/Kanixian/wiki
