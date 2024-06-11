@@ -6,6 +6,8 @@ star_list = []
 message_list = []
 score = 0
 
+debugdisp=True
+
 class Message():# hit score on screen 
     def __init__(self,x,y,message) -> None:
         self.x = x
@@ -19,7 +21,7 @@ class Message():# hit score on screen
         pyxel.text(self.x,self.y,self.mes,7)
 
 class Squad():   # 分隊
-    def __init__(self,x,y) -> None:
+    def __init__(self,x=12,y=16) -> None:
         self.start_x = x  # 分隊全体の左上の座標
         self.x = x
         self.y = y
@@ -32,6 +34,8 @@ class Squad():   # 分隊
         global teki_flyable,score,message_list
         self.counter += 1
         self.x += self.dx
+
+
         if self.x > self.start_x + 60:
             self.x = self.start_x + 60
             self.dx = -self.dx
@@ -70,36 +74,42 @@ class Squad():   # 分隊
                         bullets.remove(bullet)
                         pyxel.play(1,1)
 
-squad_instance = Squad(12,16) 
+squad_inst = Squad() 
 
 class Teki():
     def __init__(self,rx,ry,num) -> None:
-        self.rx = rx
-        self.ry = ry
+        self.rposx = rx # it seems rx means relative position x before squad move 
+        self.rposy = ry
         self.cnt = pyxel.rndi(0,100)
         self.num = num
         self.is_flying = False # flying
         self.is_return = False
-        self.x = squad_instance.x + self.rx
-        self.y = squad_instance.y + self.ry
+        self.x = squad_inst.x + self.rposx # final position to draw
+        self.y = squad_inst.y + self.rposy
         self.dest_list = []
 
     def update(self):
         global teki_flyable
         self.cnt += 1
+
         if self.is_return:
-            self.x = (self.x + squad_instance.x + self.rx) / 2
-            self.y = (self.y + squad_instance.y + self.ry) / 2
-            if round(self.x) == round(squad_instance.x + self.rx) and round(self.y) == round(squad_instance.y + self.ry):
+            print('self.is_return...')
+            self.x = (self.x + squad_inst.x + self.rposx) / 2
+            self.y = (self.y + squad_inst.y + self.rposy) / 2
+            if round(self.x) == round(squad_inst.x + self.rposx) and round(self.y) == round(squad_inst.y + self.rposy):
                 self.is_flying = False
                 self.is_return = False
 
         elif self.is_flying:
+
             self.x += self.dx
             self.y += self.dy
+
             dest = self.dest_list[0]
-            rx = abs(self.x - dest[0])
+
+            rx = abs(self.x - dest[0]) 
             ry = abs(self.y - dest[1])
+            
             if rx < 1 and ry < 1:
                 self.dest_list.pop(0)
                 if len(self.dest_list) == 0:
@@ -119,8 +129,9 @@ class Teki():
                 teki_flyable += 1
             
         else:
-            self.x = squad_instance.x + self.rx
-            self.y = squad_instance.y + self.ry
+            #print('phase else...')
+            self.x = squad_inst.x + self.rposx
+            self.y = squad_inst.y + self.rposy
 
     def draw(self):
         # pyxel.blt(x,y,atlas_image,u,v,w,h, mask_color) 
@@ -128,17 +139,13 @@ class Teki():
         v=self.num+3
         pyxel.blt(self.x,self.y,0, u*16 ,v*16 ,16,16,0)
 
+        if debugdisp and self.is_flying:
+            pyxel.text(self.x,self.y+16,f'{int(self.x)},{int(self.y)}',7)
+
     def start_core(self): # shared logic
-        self.dest_list += [
-            [(self.x+myship.x)/4,(self.y+myship.y)/4],
-            [(self.x+myship.x)/3,(self.y+myship.y)/3],
-            [(self.x+myship.x)/2,(self.y+myship.y)/2],
-            [(self.x+myship.x)/3*2,(self.y+myship.y)/3*2],
-            [(self.x+myship.x)/4*3,(self.y+myship.y)/4*3],
-            [myship.x,myship.y],
-            [(self.x+myship.x)/2*3,(self.y+myship.y)/2*3],
-            [self.x,APP_HEIGHT+64]
-        ]
+        px=self.x+myship.x
+        py=self.y+myship.y
+        self.dest_list += [  [px/4,py/4], [px/3,py/3], [px/2,py/2],  [px/3*2,py/3*2],   [px/4*3,py/4*3],   [myship.x,myship.y],   [px/2*3,py/2*3],  [self.x,APP_HEIGHT+64]]
         self.dy = -1
         self.is_flying = True
 
@@ -247,10 +254,10 @@ class App():
         tekibullets = []
         self.stage_number += 1
         teki_flyable = self.stage_number + 1
-        squad_instance.interval = 120 - self.stage_number*6 # interval changed dependent on stage_number
+        squad_inst.interval = 120 - self.stage_number*6 # interval changed dependent on stage_number
         self.counter = 0
         
-        squad_instance.list = [
+        squad_inst.list = [
             [Teki(x*10,0,0) for x in (4,10)],
             [Teki(x*10,20,1) for x in range(2,14,2)],
             [Teki(x*10,40,2) for x in range(0,16,2)],
@@ -276,12 +283,12 @@ class App():
             return
         
         ### ステージクリアの判定
-        if sum(map(len,squad_instance.list))==0:
+        if sum(map(len,squad_inst.list))==0:
             self.init_stage()
             return
             
         ### ゲームオーバーの判定
-        obstacles=tekibullets+sum(squad_instance.list,[])
+        obstacles=tekibullets+sum(squad_inst.list,[])
         for obs in obstacles:
             if obs.check_hit(myship.x,myship.y):
                 pyxel.play(2,2)
@@ -314,8 +321,8 @@ class App():
         [message_list.remove(mes)for mes in message_list if mes.cnt < 0]    ### メッセージの生存確認
         myship.update()                                             ### 自機の更新 # position by direction
         [bullet.update() for bullet in bullets+tekibullets]         ### 弾の更新
-        squad_instance.update()                                              ### 分隊の更新
-        [teki.update() for tekis in squad_instance.list for teki in tekis]   ### 敵の更新
+        squad_inst.update()                                              ### 分隊の更新
+        [teki.update() for tekis in squad_inst.list for teki in tekis]   ### 敵の更新
         [mes.update() for mes in message_list]                          ### メッセージの更新            
 
     def draw(self):
@@ -328,7 +335,7 @@ class App():
         if self.is_gaming:            
             myship.draw()                                           ### 自機の描画
             [bullet.draw() for bullet in bullets+tekibullets]       ### 弾の描画
-            [teki.draw() for tekis in squad_instance.list for teki in tekis] ### 敵の描画
+            [teki.draw() for tekis in squad_inst.list for teki in tekis] ### 敵の描画
             [mes.draw() for mes in message_list]                    ### メッセージの描画
 
             pyxel.text( APP_WIDTH//8*7,10,   f"{score}" ,7) # score info
