@@ -209,11 +209,8 @@ class Myship():
         self.y = APP_HEIGHT - 32
         self.dir = 4 #移動無し
     def update(self):
-        self.x +=  ([0,1],[0,-1],[1,0],[-1,0], [0,0])[self.dir][0] * 2
-        if self.x < 0:
-            self.x = 0
-        elif self.x > 223:
-            self.x = 223
+        self.x +=  ([0,1],[0,-1],[1,0],[-1,0], [0,0])[self.dir][0] # made speed x1 
+        self.x = min(APP_WIDTH-16,max(0,self.x))# clamping
     def draw(self):
         pyxel.blt(self.x,self.y,0,self.dir*16,16,16,24,0)
 
