@@ -6,7 +6,7 @@ star_list = []
 message_list = []
 score = 0
 
-debugdisp=True
+debugdisp=False
 
 class Message():# hit score on screen 
     def __init__(self,x,y,message) -> None:
@@ -92,8 +92,9 @@ class Teki():
         global teki_flyable
         self.cnt += 1
 
-        if self.is_return:
-            print('self.is_return...')
+        if self.is_return: 
+            # enemy is out of screen, returning to the default position
+            
             self.x = (self.x + squad_inst.x + self.rposx) / 2
             self.y = (self.y + squad_inst.y + self.rposy) / 2
             if round(self.x) == round(squad_inst.x + self.rposx) and round(self.y) == round(squad_inst.y + self.rposy):
@@ -101,6 +102,7 @@ class Teki():
                 self.is_return = False
 
         elif self.is_flying:
+            # enemy is not in squad any more, flying...
 
             self.x += self.dx
             self.y += self.dy
@@ -129,7 +131,7 @@ class Teki():
                 teki_flyable += 1
             
         else:
-            #print('phase else...')
+            # default phase
             self.x = squad_inst.x + self.rposx
             self.y = squad_inst.y + self.rposy
 
@@ -209,33 +211,22 @@ class Myship():
     def __init__(self) -> None:
         self.x = (APP_WIDTH-16)/2 # center 
         self.y = APP_HEIGHT - 32
-        self.dx=0
-        self.dy=0
-        self.dir = 4 # using for id to display image
+        self.img=4 # used for image to display
 
-    def update(self):
-        
-        ### 自機移動
-        self.dx=0
-        self.dy=0
-        if pyxel.btn(pyxel.KEY_DOWN)    or  10000 <pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTY)<36000      or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_DOWN):  self.dy=1
-        if pyxel.btn(pyxel.KEY_UP)      or  -36000<pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTY)<-10000     or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_UP):    self.dy=-1
+    def update(self): ### 自機移動
+        dx,dy,self.img=0,0,4
 
-        if pyxel.btn(pyxel.KEY_RIGHT)   or  10000 <pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTX)<36000      or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT): self.dx=1
-        if pyxel.btn(pyxel.KEY_LEFT)    or  -36000<pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTX)<-10000     or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_LEFT):  self.dx=-1
+        # user input for myship to move
+        if pyxel.btn(pyxel.KEY_RIGHT)   or  10000 <pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTX)<36000      or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT): dx=1;   self.img=2
+        if pyxel.btn(pyxel.KEY_LEFT)    or  -36000<pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTX)<-10000     or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_LEFT):  dx=-1;  self.img=3
+        if pyxel.btn(pyxel.KEY_DOWN)    or  10000 <pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTY)<36000      or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_DOWN):  dy=1
+        if pyxel.btn(pyxel.KEY_UP)      or  -36000<pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTY)<-10000     or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_UP):    dy=-1
 
-        self.x = min(APP_WIDTH-16,max(0,self.x+self.dx))# clamping
-        self.y = min(APP_HEIGHT-16,max(0, self.y+self.dy)) # extended y move , and clamping
-
-        #dx,dy =([0,1],[0,-1],[1,0],[-1,0], [0,0])[self.dir] # made speed x1 
-        if self.dx==1:self.dir=2
-        if self.dx==-1:self.dir=3
-        if self.dx==0:self.dir=4
-        if debugdisp: print(self.dx, self.dy)
+        self.x = min(APP_WIDTH-16,max(0,self.x+dx))# clamping
+        self.y = min(APP_HEIGHT-16,max(0, self.y+dy)) # extended y move , and clamping
 
     def draw(self):
-
-        pyxel.blt(self.x,self.y,0,self.dir*16,16,16,24,0) # change image dependent on its direction
+        pyxel.blt(self.x,self.y,0,self.img*16,16,16,24,0) # change image dependent on its direction
 
 myship = Myship()
 
@@ -266,6 +257,8 @@ class App():
         self.stage_number = 0
         self.is_gaming = False
 
+        myship.__init__() # need this with vertical freedom, otherwise instant gameover 
+
     def init_stage(self):
         global teki_flyable,bullets,tekibullets,score
     
@@ -285,6 +278,7 @@ class App():
 
     def update(self):
         global score
+
 
         ### ★の更新
         for star in star_list:
@@ -358,4 +352,8 @@ class App():
 
         # UI 
         pyxel.text( (APP_WIDTH)//5*2,10,    f"HI-SCORE : {self.hiscore}",7) # hi-score to display
+
+        # debug info
+        if debugdisp:
+            pyxel.text( 16,APP_HEIGHT-16,   f"self.is_gaming:{self.is_gaming}" ,7) # score info
 App()
