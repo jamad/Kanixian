@@ -193,8 +193,8 @@ class TekiBullet():
         self.dx = dx
     
     def update(self):
-        self.y += 1
         self.x += self.dx
+        self.y += 1
     
     def draw(self):
         pyxel.rect(self.x,self.y,2,8,7)
@@ -316,7 +316,7 @@ class App():
         [tekibullets.remove(bullet) for bullet in tekibullets if bullet.y > APP_HEIGHT + 10]
 
         [message_list.remove(mes)for mes in message_list if mes.cnt < 0]    ### メッセージの生存確認
-        myship.update()                                             ### 自機の更新
+        myship.update()                                             ### 自機の更新 # position by direction
         [bullet.update() for bullet in bullets+tekibullets]         ### 弾の更新
         squad.update()                                              ### 分隊の更新
         [teki.update() for tekis in squad.list for teki in tekis]   ### 敵の更新
@@ -325,22 +325,22 @@ class App():
     def draw(self):
         pyxel.cls(0)
 
-        for star in stars:star.draw()
+        [star.draw()for star in stars]
 
         if self.is_gaming:            
             myship.draw()                                           ### 自機の描画
             [bullet.draw() for bullet in bullets+tekibullets]       ### 弾の描画
             [teki.draw() for tekis in squad.list for teki in tekis] ### 敵の描画
-            [mes.draw() for mes in message_list]                        ### メッセージの描画
+            [mes.draw() for mes in message_list]                    ### メッセージの描画
 
             ### ステージ番号の描画
-            pyxel.blt(10,10,1,0,0,40,16,0)
-            pyxel.blt(60,10,1,0,self.stage_number*16+16,16,16,0)
+            pyxel.blt(10,10,1,0,0,40,16,0)                         # `stage`
+            pyxel.blt(60,10,1,0,self.stage_number*16+16,16,16,0)    # number of stage aka 1,2,3...
         else:### ゲーム開始してないときの描画
-            pyxel.text(200,220,"MOD 0.1",7)
-            pyxel.text(82,150,"Push BUTTON to Start",pyxel.frame_count%16)
-            pyxel.blt(-4,100,2,0,32,256,48,0)
-            pyxel.blt(28,10,1,48,0,64,16,0)
+            pyxel.text(200,220,"MOD 0.1",7)                                 # version info
+            pyxel.text(82,150,"Push BUTTON to Start",pyxel.frame_count%16)  # push to start
+            pyxel.blt(-4,100,2,0,32,256,48,0)                               # title image
+            pyxel.blt(28,10,1,48,0,64,16,0)                                 # highscore image
 
         ### スコアの描画はUIなので最後に。
         if score >= 1000:pyxel.blt(APP_WIDTH - 8*4-10,10,1,0,score//1000%10*16+16,8,16,0)
