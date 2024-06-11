@@ -3,7 +3,6 @@ import math
 
 APP_WIDTH = APP_HEIGHT = 240
 KEY = [pyxel.KEY_DOWN, pyxel.KEY_UP, pyxel.KEY_RIGHT, pyxel.KEY_LEFT]
-D =   [[0,1],[0,-1],[1,0],[-1,0], [0,0]]
 GPAD = [pyxel.GAMEPAD1_BUTTON_DPAD_DOWN,        pyxel.GAMEPAD1_BUTTON_DPAD_UP,        pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT,        pyxel.GAMEPAD1_BUTTON_DPAD_LEFT]
 LAXIS = [pyxel.GAMEPAD1_AXIS_LEFTY,pyxel.GAMEPAD1_AXIS_LEFTY,         pyxel.GAMEPAD1_AXIS_LEFTX,pyxel.GAMEPAD1_AXIS_LEFTX]
 LAXIS_RANGE = [[10000,36000],[-36000,-10000],[10000,36000],[-36000,-10000]]
@@ -175,10 +174,9 @@ class Teki():
         self.dx = -1
         self.dy = -1
         self.is_move = True
+
     def check_hit(self,shipx,shipy) -> bool:
-        if abs(shipx - self.x) < 12 and abs(shipy - self.y) < 12:
-            return True
-        return False
+        return abs(shipx - self.x) < 12 and abs(shipy - self.y) < 12
 
 class Star():
     def __init__(self):
@@ -230,7 +228,7 @@ class Myship():
         self.y = APP_HEIGHT - 32
         self.dir = 4 #移動無し
     def update(self):
-        self.x += D[self.dir][0] * 2
+        self.x +=  ([0,1],[0,-1],[1,0],[-1,0], [0,0])[self.dir][0] * 2
         if self.x < 0:
             self.x = 0
         elif self.x > 223:
