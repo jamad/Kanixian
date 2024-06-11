@@ -207,15 +207,34 @@ class TekiBullet():
 
 class Myship():
     def __init__(self) -> None:
-        self.x = APP_WIDTH / 2 - 8
+        self.x = (APP_WIDTH-16)/2 # center 
         self.y = APP_HEIGHT - 32
-        self.dir = 4 #移動無し
+        self.dx=0
+        self.dy=0
+        self.dir = 4 # using for id to display image
 
     def update(self):
-        self.x +=  ([0,1],[0,-1],[1,0],[-1,0], [0,0])[self.dir][0] # made speed x1 
-        self.x = min(APP_WIDTH-16,max(0,self.x))# clamping
+        
+        ### 自機移動
+        self.dx=0
+        self.dy=0
+        if pyxel.btn(pyxel.KEY_DOWN)    or  10000 <pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTY)<36000      or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_DOWN):  self.dy=1
+        if pyxel.btn(pyxel.KEY_UP)      or  -36000<pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTY)<-10000     or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_UP):    self.dy=-1
+
+        if pyxel.btn(pyxel.KEY_RIGHT)   or  10000 <pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTX)<36000      or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT): self.dx=1
+        if pyxel.btn(pyxel.KEY_LEFT)    or  -36000<pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTX)<-10000     or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_LEFT):  self.dx=-1
+
+        self.x = min(APP_WIDTH-16,max(0,self.x+self.dx))# clamping
+        self.y = min(APP_HEIGHT-16,max(0, self.y+self.dy)) # extended y move , and clamping
+
+        #dx,dy =([0,1],[0,-1],[1,0],[-1,0], [0,0])[self.dir] # made speed x1 
+        if self.dx==1:self.dir=2
+        if self.dx==-1:self.dir=3
+        if self.dx==0:self.dir=4
+        if debugdisp: print(self.dx, self.dy)
 
     def draw(self):
+
         pyxel.blt(self.x,self.y,0,self.dir*16,16,16,24,0) # change image dependent on its direction
 
 myship = Myship()
@@ -297,17 +316,6 @@ class App():
 
         ### ステージ開始からの経過フレーム数の更新
         self.counter += 1
-
-        KEY = [pyxel.KEY_DOWN, pyxel.KEY_UP, pyxel.KEY_RIGHT, pyxel.KEY_LEFT]
-        GPAD = [pyxel.GAMEPAD1_BUTTON_DPAD_DOWN,        pyxel.GAMEPAD1_BUTTON_DPAD_UP,        pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT,        pyxel.GAMEPAD1_BUTTON_DPAD_LEFT]
-        LAXIS = [pyxel.GAMEPAD1_AXIS_LEFTY,pyxel.GAMEPAD1_AXIS_LEFTY,         pyxel.GAMEPAD1_AXIS_LEFTX,pyxel.GAMEPAD1_AXIS_LEFTX]
-        LAXIS_RANGE = [[10000,36000],[-36000,-10000],[10000,36000],[-36000,-10000]]
-
-        ### 自機の移動判定
-        myship.dir = 4   # 移動無し
-        for i in range(2,4):
-            if pyxel.btn(KEY[i]) or  LAXIS_RANGE[i][0] < pyxel.btnv(LAXIS[i]) < LAXIS_RANGE[i][1] or pyxel.btn(GPAD[i]): # key, analogstick, Dpad
-                myship.dir = i   # 移動有り
 
         ### 弾発射の判定
         if pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_A) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_B):
