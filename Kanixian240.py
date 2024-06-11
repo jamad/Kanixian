@@ -43,11 +43,7 @@ class Squad():   # 分隊
         if self.counter % self.interval == 0:
 
             if teki_flyable:
-
-                while 1:
-                    row = self.list[pyxel.rndi(0,3)] # row to select at random
-                    if row!=[]:break
-
+                while(row:=self.list[pyxel.rndi(0,3)])==[]:continue # select non empty row at random 
                 col=pyxel.rndi(0,len(row)-1)# choose col at random
                 row[col].is_flying == False
 
