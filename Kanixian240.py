@@ -75,55 +75,56 @@ class Squad():   # 分隊
 squad_inst = Squad() 
 
 class Teki():
-    def __init__(self,rx,ry,num) -> None:
-        self.rposx = rx # it seems rx means relative position x before squad move 
+    def __init__(self,rx,ry,num): # rx,ry: relative position in group, num: row id from top
+        self.rposx = rx
         self.rposy = ry
-        self.cnt = pyxel.rndi(0,100)
         self.num = num
+        self.cnt = pyxel.rndi(0,60) # used for animation pattern randomness
         self.is_flying = False # flying
         self.is_return = False
         self.x = squad_inst.x + self.rposx # final position to draw
         self.y = squad_inst.y + self.rposy
-        self.dest_list = []
+        self.trajectory = []
 
     def update(self):
         global teki_flyable
         self.cnt += 1
 
+        # returning, flying or moving as the group member
         if self.is_return: 
             # enemy is out of screen, returning to the default position
             
             self.x = (self.x + squad_inst.x + self.rposx) / 2
             self.y = (self.y + squad_inst.y + self.rposy) / 2
+
             if round(self.x) == round(squad_inst.x + self.rposx) and round(self.y) == round(squad_inst.y + self.rposy):
                 self.is_flying = False
                 self.is_return = False
 
         elif self.is_flying:
-            # enemy is not in squad any more, flying...
+            # enemy is not in squad any more, flying along its trajectory
 
             self.x += self.dx
             self.y += self.dy
 
-            tx,ty = self.dest_list[0]# target position
+            tx,ty = self.trajectory[0]# target position
 
             rx = abs(self.x - tx) 
             ry = abs(self.y - ty)
             
-            if rx < 1 and ry < 1:
-                
-                self.dest_list.pop(0)
+            if rx < 1 and ry < 1: # if arrived the destination
+                self.trajectory.pop(0)
 
-                if len(self.dest_list) == 0:
-                    self.is_flying = False
-                else:
-                    dest = self.dest_list[0]
+            if len(self.trajectory) == 0:
+                self.is_flying = False
+            else:
+                dest = self.trajectory[0] # next destination
 
-                    vec_dx = (dest[0] - self.x)
-                    vec_dy = (dest[1] - self.y)
-                    vec_len = (vec_dx * vec_dx + vec_dy * vec_dy)**.5
-                    self.dx = (vec_dx / vec_len) * 2
-                    self.dy = (vec_dy / vec_len) * 2
+                vec_dx = (dest[0] - self.x)
+                vec_dy = (dest[1] - self.y)
+                dist = (vec_dx * vec_dx + vec_dy * vec_dy)**.5
+                self.dx = vec_dx / dist * 2
+                self.dy = vec_dy / dist * 2
 
             if 100 < self.y < 104: # shooting the bullet
                 tekibullets.append(TekiBullet(self.x-16+pyxel.rndi(0,16) , self.y+16 , (self.dx * pyxel.rndf(1,2))/4))
@@ -134,36 +135,34 @@ class Teki():
                 teki_flyable += 1
             
         else:
-            # default phase
+            # default behavior : enemy moves as the group
             self.x = squad_inst.x + self.rposx
             self.y = squad_inst.y + self.rposy
 
     def draw(self):
         # pyxel.blt(x,y,atlas_image,u,v,w,h, mask_color) 
-        u=self.is_flying and 2+(0<self.dx) or (self.cnt//24)%2 
-        v=self.num+3
+        u=self.is_flying and 2+(0<self.dx) or (self.cnt//30)%2  # animation pattern 
+        v=self.num+3 # enemy color by row id
         pyxel.blt(self.x,self.y,0, u*16 ,v*16 ,16,16,0)
 
         if debugdisp and self.is_flying:
             pyxel.text(self.x,self.y+16,f'{int(self.x)},{int(self.y)}',7)
-
-            for p1,p2 in zip(self.dest_list,self.dest_list[1:]):
-                pyxel.line(p1[0], p1[1], p2[0], p2[1], 7)
+            for p1,p2 in zip(self.trajectory,self.trajectory[1:]):pyxel.line(p1[0], p1[1], p2[0], p2[1], 7)
 
     def start_core(self): # shared logic
+        self.is_flying = True
         px=self.x+myship.x
         py=self.y+myship.y
-        self.dest_list += [  [px/4,py/4], [px/3,py/3], [px/2,py/2],  [px/3*2,py/3*2],   [px/4*3,py/4*3],   [myship.x,myship.y],   [px/2*3,py/2*3],  [self.x,APP_HEIGHT+64]]
+        self.trajectory += [  [px/4,py/4], [px/3,py/3], [px/2,py/2],  [px/3*2,py/3*2],[px/4*3,py/4*3],[myship.x,myship.y],[px/2*3,py/2*3],[self.x, APP_HEIGHT+64]] # last pos should be out of screen
         self.dy = -1
-        self.is_flying = True
 
     def start_right(self):# enemy move from rightside
-        self.dest_list = [            [self.x+32,self.y-32],[self.x+64,self.y+10],[self.x,self.y+20]        ]
+        self.trajectory = [            [self.x+32,self.y-32],[self.x+64,self.y+10],[self.x,self.y+20]        ]
         self.start_core()
-        self.dx =  1
+        self.dx = 1
 
     def start_left(self):# enemy move from leftside
-        self.dest_list = [            [self.x-32,self.y-32],[self.x-64,self.y+10],[self.x-32,self.y+20]        ]
+        self.trajectory = [            [self.x-32,self.y-32],[self.x-64,self.y+10],[self.x-32,self.y+20]        ]
         self.start_core()
         self.dx = -1
 
@@ -279,6 +278,7 @@ class App():
         squad_inst.interval = 120 - stage_number*6 # interval changed dependent on stage_number
         self.counter = 0
         
+
         squad_inst.list = [
             [Teki(x*10,0,0) for x in (4,10)],
             [Teki(x*10,20,1) for x in range(2,14,2)],
