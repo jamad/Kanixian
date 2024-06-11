@@ -241,17 +241,13 @@ class App():
     def __init__(self):
         pyxel.init(APP_WIDTH,APP_HEIGHT,title="Kanixian MOD",fps=60,display_scale=2) 
         pyxel.load("kani.pyxres")
-
-        for i in range(50):       ### 背景として流れる★
-            star_list.append(Star())
         try:
-            with open("hiscore.txt","r") as f:
-                self.hiscore = int(f.readline())
+            with open("hiscore.txt","r") as f:self.hiscore = int(f.readline())
         except:
             self.hiscore=0
-            with open("hiscore.txt","w") as f:
-                f.write(str(self.hiscore))
+            with open("hiscore.txt","w") as f:f.write(f'{self.hiscore}')
 
+        for i in range(50):star_list.append(Star())### 背景として流れる★
         self.init_game()
         pyxel.run(self.update,self.draw)
 
@@ -275,7 +271,6 @@ class App():
     
         stage_number += 1
         teki_flyable = stage_number + 1
-        squad_inst.interval = 120 - stage_number*6 # interval changed dependent on stage_number
         self.counter = 0
         
 
