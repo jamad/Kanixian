@@ -12,7 +12,7 @@ bullets = []
 tekibullets = []
 messages = []
 score = 0
-teki_movable = 0
+teki_movable = 0 # what is it for? 
 
 class Message():# hit score on screen 
     def __init__(self,x,y,message) -> None:
@@ -68,15 +68,10 @@ class Squad():   # 分隊
                     if bullet.check_hit(teki.x,teki.y):
                         if teki.is_move:
                             teki_movable += 1
-                            if y == 0:
-                                score += 150
-                                messages.append(Message(teki.x+6,teki.y+6,"150"))
-                            else:
-                                score += 30
-                                messages.append(Message(teki.x+4,teki.y+6,"30"))
-                        else:
-                            messages.append(Message(teki.x+4,teki.y+6,"10"))
-                            score += 10
+                            ds=y and 30 or 150   
+                        else:ds=10
+                        score += ds
+                        messages.append(Message(teki.x+4+2*(ds==150),teki.y+6,f"{ds}"))
                         self.list[y].remove(teki)
                         bullets.remove(bullet)
                         pyxel.play(1,1)
