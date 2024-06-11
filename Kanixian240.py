@@ -98,6 +98,7 @@ class Teki():
             if round(self.x) == round(squad.x + self.rx) and round(self.y) == round(squad.y + self.ry):
                 self.is_flying = False
                 self.is_return = False
+
         elif self.is_flying:
             self.x += self.dx
             self.y += self.dy
@@ -334,8 +335,8 @@ class App():
             [mes.draw() for mes in message_list]                    ### メッセージの描画
 
             ### ステージ番号の描画
-            pyxel.blt(10,10,1,0,0,40,16,0)                         # `stage`
-            pyxel.blt(60,10,1,0,self.stage_number*16+16,16,16,0)    # number of stage aka 1,2,3...
+            pyxel.text(10,10,"STAGE",7)                             # `stage`
+            pyxel.text(36,10,str(self.stage_number),7)              # number of stage aka 1,2,3...
         else:### ゲーム開始してないときの描画
             pyxel.text(200,220,"MOD 0.1",7)                                 # version info
             pyxel.text(82,150,"Push BUTTON to Start",pyxel.frame_count%16)  # push to start
