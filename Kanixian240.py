@@ -1,6 +1,6 @@
 import pyxel
 
-debugdisp=False
+debugdisp=0
 
 APP_WIDTH = APP_HEIGHT = 240
 CHAR_SIZE=16 
@@ -147,6 +147,9 @@ class Teki():
         if debugdisp and self.is_flying:
             pyxel.text(self.x,self.y+16,f'{int(self.x)},{int(self.y)}',7)
 
+            for p1,p2 in zip(self.dest_list,self.dest_list[1:]):
+                pyxel.line(p1[0], p1[1], p2[0], p2[1], 7)
+
     def start_core(self): # shared logic
         px=self.x+myship.x
         py=self.y+myship.y
@@ -172,7 +175,7 @@ class Star():
         self.x = pyxel.rndi(0,APP_WIDTH )
         self.y = pyxel.rndi(0,APP_HEIGHT)
         self.color = pyxel.rndi(5,7)
-        self.speed = -1 + pyxel.rndf(0.0,0.25)+ self.color/4
+        self.speed =  self.color/4 -1
 
     def update(self):
         self.y += self.speed # scroll
