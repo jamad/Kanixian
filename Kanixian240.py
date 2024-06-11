@@ -133,10 +133,10 @@ class Teki():
             self.y = squad.y + self.ry
 
     def draw(self):
-        if self.is_move:
-            pyxel.blt(self.x,self.y,0,  32+16*(0<self.dx),    48+self.num*16,16,16,0)
-        else:
-            pyxel.blt(self.x,self.y,0,  (self.cnt//24)%2*16,  48+self.num*16,16,16,0)
+        # pyxel.blt(x,y,atlas_image,u,v,w,h, mask_color) 
+        u=self.is_move and 2+(0<self.dx) or (self.cnt//24)%2 
+        v=self.num+3
+        pyxel.blt(self.x,self.y,0, u*16 ,v*16 ,16,16,0)
 
     def start_core(self): # shared logic
         self.dest_list += [
@@ -153,17 +153,11 @@ class Teki():
         self.is_move = True
 
     def start_right(self):# enemy move from rightside
-        self.dest_list = [
-            [self.x+32,self.y-32],[self.x+64,self.y+10],
-            [self.x,self.y+20]
-        ]
+        self.dest_list = [            [self.x+32,self.y-32],[self.x+64,self.y+10],[self.x,self.y+20]        ]
         self.start_core()
         self.dx =  1
     def start_left(self):# enemy move from leftside
-        self.dest_list = [
-            [self.x-32,self.y-32],[self.x-64,self.y+10],
-            [self.x-32,self.y+20]
-        ]
+        self.dest_list = [            [self.x-32,self.y-32],[self.x-64,self.y+10],[self.x-32,self.y+20]        ]
         self.start_core()
         self.dx = -1
 
