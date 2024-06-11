@@ -323,35 +323,15 @@ class App():
             pyxel.play(0,0)
 
         ### 弾の生存確認
-        for bullet in bullets:
-            if bullet.y < -10:
-                bullets.remove(bullet)
+        [bullets.remove(bullet)for bullet in bullets if bullet.y < -10]
+        [tekibullets.remove(bullet) for bullet in tekibullets if bullet.y > APP_HEIGHT + 10]
         
-        for bullet in tekibullets:
-            if bullet.y > APP_HEIGHT + 10:
-                tekibullets.remove(bullet)
-
-        ### メッセージの生存確認
-        for mes in messages:
-            if mes.cnt < 0:
-                messages.remove(mes)
-
-        ### 自機の更新
-        myship.update()
-        ### 弾の更新
-        for bullet in bullets:
-            bullet.update()
-        for bullet in tekibullets:
-            bullet.update()
-        ### 分隊の更新
-        squad.update()
-        ### 敵の更新
-        for tekis in squad.list:
-            for teki in tekis:
-                teki.update()
-        ### メッセージの更新
-        for mes in messages:
-            mes.update()
+        [messages.remove(mes)for mes in messages if mes.cnt < 0]    ### メッセージの生存確認
+        myship.update()                                             ### 自機の更新
+        [bullet.update() for bullet in bullets+tekibullets]         ### 弾の更新
+        squad.update()                                              ### 分隊の更新
+        [teki.update() for tekis in squad.list for teki in tekis]   ### 敵の更新
+        [mes.update() for mes in messages]                          ### メッセージの更新            
 
     def draw(self):
         pyxel.cls(0)
@@ -370,7 +350,6 @@ class App():
         else:### ゲーム開始してないときの描画
             pyxel.text(200,220,"MOD 0.1",7)
             pyxel.text(82,150,"Push BUTTON to Start",pyxel.frame_count%16)
-
             pyxel.blt(-4,100,2,0,32,256,48,0)
             pyxel.blt(28,10,1,48,0,64,16,0)
 
