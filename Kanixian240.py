@@ -1,19 +1,11 @@
 import pyxel
 import math
 
-APP_WIDTH = 240
-APP_HEIGHT = 240
-
-TAMALIMIT = 1
-
-KEY = [pyxel.KEY_DOWN,pyxel.KEY_UP,pyxel.KEY_RIGHT,pyxel.KEY_LEFT]
-D =   [[0,1],[0,-1],[1,0],[-1,0]  , [0,0]]
-GPAD = [pyxel.GAMEPAD1_BUTTON_DPAD_DOWN,
-        pyxel.GAMEPAD1_BUTTON_DPAD_UP,
-        pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT,
-        pyxel.GAMEPAD1_BUTTON_DPAD_LEFT]
-LAXIS = [pyxel.GAMEPAD1_AXIS_LEFTY,pyxel.GAMEPAD1_AXIS_LEFTY,
-         pyxel.GAMEPAD1_AXIS_LEFTX,pyxel.GAMEPAD1_AXIS_LEFTX]
+APP_WIDTH = APP_HEIGHT = 240
+KEY = [pyxel.KEY_DOWN, pyxel.KEY_UP, pyxel.KEY_RIGHT, pyxel.KEY_LEFT]
+D =   [[0,1],[0,-1],[1,0],[-1,0], [0,0]]
+GPAD = [pyxel.GAMEPAD1_BUTTON_DPAD_DOWN,        pyxel.GAMEPAD1_BUTTON_DPAD_UP,        pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT,        pyxel.GAMEPAD1_BUTTON_DPAD_LEFT]
+LAXIS = [pyxel.GAMEPAD1_AXIS_LEFTY,pyxel.GAMEPAD1_AXIS_LEFTY,         pyxel.GAMEPAD1_AXIS_LEFTX,pyxel.GAMEPAD1_AXIS_LEFTX]
 LAXIS_RANGE = [[10000,36000],[-36000,-10000],[10000,36000],[-36000,-10000]]
 
 stars = []
@@ -24,15 +16,15 @@ score = 0
 
 teki_movable = 0
 
-class Message():
+class Message():# hit score on screen 
     def __init__(self,x,y,message) -> None:
         self.x = x
         self.y = y
-        self.cnt = 48
+        self.cnt = 30 # timer 
         self.mes = message
     def update(self):
-        self.cnt -= 1
-        self.y -= 0.2
+        self.cnt -= 1 # timer decrement
+        self.y -= 0.2 # position move
     def draw(self):
         pyxel.text(self.x,self.y,self.mes,7)
 
@@ -55,6 +47,7 @@ class Squad():   # 分隊
         elif self.x < self.start_x:
             self.x = self.start_x
             self.dx = -self.dx
+
         ### 移動開始させるかどうかの判定
         if self.counter % self.interval == 0:
             if teki_movable > 0:
@@ -69,6 +62,7 @@ class Squad():   # 分隊
                     if gyou[-1].is_move == False:
                         gyou[-1].start_right()
                         teki_movable -= 1
+
         ### list中の敵が弾に当たったかの判定と削除
         for y in reversed(range(4)):
             for teki in self.list[y]:
@@ -116,13 +110,9 @@ class Teki():
             self.x += self.dx
             self.y += self.dy
             dest = self.dest_list[0]
-            #print("{}, {}".format(self.x,self.y))
-            #print(dest)
             rx = abs(self.x - dest[0])
             ry = abs(self.y - dest[1])
             if rx < 1 and ry < 1:
-                #print("##########")
-                #print(self.dest_list)
                 self.dest_list.pop(0)
                 if len(self.dest_list) == 0:
                     self.is_move = False
@@ -133,15 +123,10 @@ class Teki():
                     vec_len = math.sqrt(vec_dx * vec_dx + vec_dy * vec_dy)
                     self.dx = (vec_dx / vec_len) * 2
                     self.dy = (vec_dy / vec_len) * 2
-                    #print("========================================")
-                    #print("dx {}, dy {}".format(self.dx,self.dy))
             if self.y > 100 and self.y < 104:
-                #print("{},{}".format(self.x-8,self.y+16))
                 tekibullets.append(TekiBullet(self.x-16+pyxel.rndi(0,16),self.y+16,(self.dx * pyxel.rndf(1,2))/4))
             if self.y > APP_HEIGHT + 32:
-                #print("画面の下のほうに消えていったよ")
                 self.y = -16
-                #self.is_move = False
                 self.is_return = True
                 teki_movable += 1
             
@@ -195,51 +180,49 @@ class Teki():
             return True
         return False
 
-
-
-
 class Star():
-    def __init__(self) -> None:
-        super().__init__()
-        self.x = pyxel.rndi(0,APP_WIDTH - 1)
-        self.y = pyxel.rndi(-20,0)
+    def __init__(self):
+        self.x = pyxel.rndi(0,APP_WIDTH )
+        self.y = pyxel.rndi(0,APP_HEIGHT)
         self.color = pyxel.rndi(5,7)
-        self.speed = (pyxel.rndf(0.0,1.0) - 4 + self.color)/4
+        self.speed = -1 + pyxel.rndf(0.0,0.25)+ self.color/4
+
     def update(self):
-        self.y += self.speed
+        self.y += self.speed # scroll
+
     def draw(self):
-        if pyxel.rndi(1,3) == 1:
+        if pyxel.rndi(1,3) <2 :#blinking. showing at 33%
             pyxel.pset(self.x,self.y,self.color)
 
 class Bullet():
     def __init__(self, x, y) -> None:
         self.x = x
         self.y = y
+
     def update(self):
         self.y -= 4
+
     def draw(self):
         pyxel.rect(self.x,self.y,2,4,10)
-    def check_hit(self,tekix,tekiy) -> bool:
-        if tekix > self.x-14 and tekix < self.x-1:
-            if tekiy > self.y-16 and tekiy < self.y:
-                return True
-        return False
+        
+    def check_hit(self,tekix,tekiy):
+        return self.x-14 < tekix < self.x-1 and self.y-16 < tekiy < self.y
 
 class TekiBullet():
     def __init__(self,x,y,dx) -> None:
         self.x = x
         self.y = y
         self.dx = dx
+    
     def update(self):
         self.y += 1
         self.x += self.dx
+    
     def draw(self):
         pyxel.rect(self.x,self.y,2,8,7)
-    def check_hit(self,shipx,shipy) -> bool:
-        if shipx > self.x-14 and shipx < self.x-3:
-            if shipy > self.y-14 and shipy < self.y-2:
-                return True
-        return False
+
+    def check_hit(self,shipx,shipy):
+        return self.x-14 < shipx < self.x-3 and self.y-14 < shipy < self.y-2
 
 class Myship():
     def __init__(self) -> None:
@@ -248,7 +231,6 @@ class Myship():
         self.dir = 4 #移動無し
     def update(self):
         self.x += D[self.dir][0] * 2
-        #self.y += D[self.dir][1] * 2
         if self.x < 0:
             self.x = 0
         elif self.x > 223:
@@ -261,12 +243,19 @@ myship = Myship()
 
 class App():
     def __init__(self):
-        pyxel.init(APP_WIDTH,APP_HEIGHT,title="カニクシアン（Kanixian）",fps=48)
+        pyxel.init(APP_WIDTH,APP_HEIGHT,title="Kanixian MOD",fps=60,display_scale=1) 
         pyxel.load("kani.pyxres")
+
         for i in range(50):       ### 背景として流れる★
             stars.append(Star())
-        with open("hiscore.txt","r") as f:
-            self.hiscore = int(f.readline())
+        try:
+            with open("hiscore.txt","r") as f:
+                self.hiscore = int(f.readline())
+        except:
+            self.hiscore=0
+            with open("hiscore.txt","w") as f:
+                f.write(str(self.hiscore))
+
         self.init_game()
         pyxel.run(self.update,self.draw)
 
@@ -285,62 +274,70 @@ class App():
         self.stage_number += 1
         teki_movable = self.stage_number + 1
         squad.interval = 120 - self.stage_number*6
-        self.is_gaming = True
-        self.init_squad()
         self.counter = 0
+        
+        squad.list = [
+            [Teki(x*10,0,0) for x in (4,10)],
+            [Teki(x*10,20,1) for x in range(2,14,2)],
+            [Teki(x*10,40,2) for x in range(0,16,2)],
+            [Teki(x*10,60,3) for x in range(0,16,2)],
+        ]
 
     def update(self):
         global score
+
         ### ★の更新
         for star in stars:
             star.update()
             if star.y > APP_HEIGHT:
                 stars.remove(star)
                 stars.append(Star())
+
         ### ゲーム開始の判定
-        if self.is_gaming == False and (pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_START)):
-            score = 0
-            self.init_stage()
-            return
-        ### ゲーム開始してないとき
         if self.is_gaming == False:
+            if (pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_START)):
+                score = 0
+                self.init_stage()
+                self.is_gaming = True
             return
+        
+        
         ### ステージクリアの判定
-        if len(squad.list[0]) == len(squad.list[1]) == len(squad.list[2]) == len(squad.list[3]) == 0:
+        if sum(map(len,squad.list))==0:
             self.init_stage()
             return
+            
         ### ゲームオーバーの判定
-        for bullet in tekibullets:
-            if bullet.check_hit(myship.x,myship.y):
+        obstacles=tekibullets+sum(squad.list,[])
+        for obs in obstacles:
+            if obs.check_hit(myship.x,myship.y):
                 pyxel.play(2,2)
                 self.init_game()
                 return
-        for y in range(4):
-            for teki in squad.list[y]:
-                if teki.check_hit(myship.x,myship.y):
-                    pyxel.play(2,2)
-                    self.init_game()
-                    return
 
         ### ステージ開始からの経過フレーム数の更新
         self.counter += 1
+
         ### 自機の移動判定
         myship.dir = 4   # 移動無し
         for i in range(2,4):
-            if pyxel.btn(KEY[i]) or (pyxel.btnv(LAXIS[i]) > LAXIS_RANGE[i][0] and pyxel.btnv(LAXIS[i]) < LAXIS_RANGE[i][1]) or pyxel.btn(GPAD[i]):
+            if pyxel.btn(KEY[i]) or  LAXIS_RANGE[i][0] < pyxel.btnv(LAXIS[i]) < LAXIS_RANGE[i][1] or pyxel.btn(GPAD[i]): # key, analogstick, Dpad
                 myship.dir = i   # 移動有り
+
         ### 弾発射の判定
         if pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_A) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_B):
-            if len(bullets) < TAMALIMIT:
-                bullets.append(Bullet(myship.x + 7,myship.y))
-                pyxel.play(0,0)
+            bullets.append(Bullet(myship.x + 7,myship.y))
+            pyxel.play(0,0)
+
         ### 弾の生存確認
         for bullet in bullets:
             if bullet.y < -10:
                 bullets.remove(bullet)
+        
         for bullet in tekibullets:
             if bullet.y > APP_HEIGHT + 10:
                 tekibullets.remove(bullet)
+
         ### メッセージの生存確認
         for mes in messages:
             if mes.cnt < 0:
@@ -364,83 +361,39 @@ class App():
             mes.update()
 
     def draw(self):
-        ### 画面初期化
         pyxel.cls(0)
-        ### ★の描画
-        for star in stars:
-            star.draw()
 
-        ### ゲーム開始してないときの描画
-        if self.is_gaming == False:
-            pyxel.text(220,240,"V.1.4",7)
+        for star in stars:star.draw()
+
+        if self.is_gaming:            
+            ### 自機の描画
+            myship.draw()
+            ### 弾の描画
+            [bullet.draw() for bullet in bullets+tekibullets]
+            ### 敵の描画
+            [teki.draw() for tekis in squad.list for teki in tekis]
+            ### メッセージの描画
+            [mes.draw() for mes in messages]
+
+            ### ステージ番号の描画
+            pyxel.blt(10,10,1,0,0,40,16,0)
+            pyxel.blt(60,10,1,0,self.stage_number*16+16,16,16,0)
+        else:### ゲーム開始してないときの描画
+            pyxel.text(200,220,"MOD 0.1",7)
             pyxel.text(82,150,"Push BUTTON to Start",pyxel.frame_count%16)
+
             pyxel.blt(-4,100,2,0,32,256,48,0)
             pyxel.blt(28,10,1,48,0,64,16,0)
-            if score >= 1000:
-                pyxel.blt(APP_WIDTH - 8*4-10,10,1,0,score//1000%10*16+16,8,16,0)
-            if score >= 100:
-                pyxel.blt(APP_WIDTH - 8*3-10,10,1,0,score//100%10*16+16,8,16,0)
-            if score >= 10:
-                pyxel.blt(APP_WIDTH - 8*2-10,10,1,0,score//10%10*16+16,8,16,0)
-            pyxel.blt(APP_WIDTH - 8*1-10,10,1,0,score%10*16+16,8,16,0)
-            sc = self.hiscore
-            if sc >= 1000:
-                pyxel.blt(APP_WIDTH - 8*4-100,10,1,0,sc//1000%10*16+16,8,16,0)
-            if sc >= 100:
-                pyxel.blt(APP_WIDTH - 8*3-100,10,1,0,sc//100%10*16+16,8,16,0)
-            if sc >= 10:
-                pyxel.blt(APP_WIDTH - 8*2-100,10,1,0,sc//10%10*16+16,8,16,0)
-            pyxel.blt(APP_WIDTH - 8*1-100,10,1,0,score%10*16+16,8,16,0)
-            return
 
-        ### 自機の描画
-        myship.draw()
-        if len(bullets) < TAMALIMIT:
-            pyxel.blt(myship.x,myship.y-16,0,16,0,16,16,0)
-        ### 弾の描画
-        for bullet in bullets:
-            bullet.draw()
-        for bullet in tekibullets:
-            bullet.draw()
-        ### 敵の描画
-        for tekis in squad.list:
-            for teki in tekis:
-                teki.draw()
-        ### メッセージの描画
-        for mes in messages:
-            mes.draw()
-        ### ステージ番号とスコアの描画
-        pyxel.blt(10,10,1,0,0,40,16,0)
-        pyxel.blt(60,10,1,0,self.stage_number*16+16,16,16,0)
-        if score >= 1000:
-            pyxel.blt(APP_WIDTH - 8*4-10,10,1,0,score//1000%10*16+16,8,16,0)
-        if score >= 100:
-            pyxel.blt(APP_WIDTH - 8*3-10,10,1,0,score//100%10*16+16,8,16,0)
-        if score >= 10:
-            pyxel.blt(APP_WIDTH - 8*2-10,10,1,0,score//10%10*16+16,8,16,0)
+        ### スコアの描画はUIなので最後に。
+        if score >= 1000:pyxel.blt(APP_WIDTH - 8*4-10,10,1,0,score//1000%10*16+16,8,16,0)
+        if score >= 100:pyxel.blt(APP_WIDTH - 8*3-10,10,1,0,score//100%10*16+16,8,16,0)
+        if score >= 10:pyxel.blt(APP_WIDTH - 8*2-10,10,1,0,score//10%10*16+16,8,16,0)
         pyxel.blt(APP_WIDTH - 8*1-10,10,1,0,score%10*16+16,8,16,0)
         sc = self.hiscore
-        if sc >= 1000:
-            pyxel.blt(APP_WIDTH - 8*4-100,10,1,0,sc//1000%10*16+16,8,16,0)
-        if sc >= 100:
-            pyxel.blt(APP_WIDTH - 8*3-100,10,1,0,sc//100%10*16+16,8,16,0)
-        if sc >= 10:
-            pyxel.blt(APP_WIDTH - 8*2-100,10,1,0,sc//10%10*16+16,8,16,0)
+        if sc >= 1000:pyxel.blt(APP_WIDTH - 8*4-100,10,1,0,sc//1000%10*16+16,8,16,0)
+        if sc >= 100:pyxel.blt(APP_WIDTH - 8*3-100,10,1,0,sc//100%10*16+16,8,16,0)
+        if sc >= 10:pyxel.blt(APP_WIDTH - 8*2-100,10,1,0,sc//10%10*16+16,8,16,0)
         pyxel.blt(APP_WIDTH - 8*1-100,10,1,0,score%10*16+16,8,16,0)
     
-    def init_squad(self):
-        squad.list = [
-            [Teki(40,0,0),Teki(100,0,0)],
-
-            [Teki(20,20,1),Teki(40,20,1),Teki(60,20,1),
-             Teki(80,20,1),Teki(100,20,1),Teki(120,20,1)],
-
-            [Teki(0,40,2),Teki(20,40,2),Teki(40,40,2),Teki(60,40,2),
-             Teki(80,40,2),Teki(100,40,2),Teki(120,40,2),Teki(140,40,2)],
-
-            [Teki(0,60,3),Teki(20,60,3),Teki(40,60,3),Teki(60,60,3),
-             Teki(80,60,3),Teki(100,60,3),Teki(120,60,3),Teki(140,60,3)]
-        ]
-
 App()
-
