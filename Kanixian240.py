@@ -8,9 +8,7 @@ CHAR_SIZE=16
 star_list = []
 message_list = []
 score = 0
-
 stage_number=0 # used in App, Squad
-
 
 class Message():# hit score on screen 
     def __init__(self,x,y,message) -> None:
@@ -24,37 +22,36 @@ class Message():# hit score on screen
         pyxel.text(self.x,self.y,self.mes,7)
 
 class Squad():   # 分隊
-    def __init__(self) -> None:
+    def __init__(self):
         self.x, self.y = 12, 16
         self.dx = 0.2
         self.list = [[],[],[],[]]# enemy arrays
         self.counter = 1
-        #self.interval = 60 #  interval to attack
 
     def update(self):
-        global teki_flyable,score,message_list, stage_number
+        global flyable_enemy_count,score,message_list, stage_number
         self.counter += 1
 
         self.x += self.dx # horizontal group move
         if 72 <self.x or self.x < 12: self.dx *= -1 # reverse direction
 
         ### 移動開始させるかどうかの判定
-
         attack_interval=max(1,60-stage_number*4)# dynamic interval dependent on stage number
-
         if self.counter % attack_interval == 0:
-            print(f'debug teki_flyable:{teki_flyable} @ {self.counter}')
-            if teki_flyable:
+            print(f'debug teki_flyable:{flyable_enemy_count} @ {self.counter}')
+
+            if flyable_enemy_count:
+                flyable_enemy_count -= 1
+
                 while(row:=self.list[pyxel.rndi(0,3)])==[]:continue # select non empty row at random 
                 col=pyxel.rndi(0,len(row)-1)# choose col at random
-                row[col].is_flying == False
+                row[col].is_flying =True 
 
                 # 50% randomness to fly from left or right
-                if pyxel.rndi(0,1):row[col].start_left()
-                else:row[col].start_right()
-
-                teki_flyable -= 1
-
+                row[col].dx = (-1,1)[pyxel.rndi(0,1)]
+                row[col].start_core()
+                
+                
         ### list中の敵が弾に当たったかの判定と削除
         for y in reversed(range(4)):
             for teki in self.list[y]:
@@ -62,10 +59,11 @@ class Squad():   # 分隊
                     if bullet.check_hit(teki.x,teki.y):
 
                         if teki.is_flying:
-                            teki_flyable += 1
+                            flyable_enemy_count += 1
                             ds=y and 30 or 150   
+                        else:
+                            ds=10
 
-                        else:ds=10
                         score += ds
                         message_list.append(Message(teki.x+4+2*(ds==150),teki.y+6,f"{ds}"))
                         self.list[y].remove(teki)
@@ -87,7 +85,7 @@ class Teki():
         self.trajectory = []
 
     def update(self):
-        global teki_flyable
+        global flyable_enemy_count
         self.cnt += 1
 
         # returning, flying or moving as the group member
@@ -103,7 +101,6 @@ class Teki():
 
         elif self.is_flying:
             # enemy is not in squad any more, flying along its trajectory
-
             self.x += self.dx
             self.y += self.dy
 
@@ -118,21 +115,20 @@ class Teki():
             if len(self.trajectory) == 0:
                 self.is_flying = False
             else:
-                dest = self.trajectory[0] # next destination
-
-                vec_dx = (dest[0] - self.x)
-                vec_dy = (dest[1] - self.y)
-                dist = (vec_dx * vec_dx + vec_dy * vec_dy)**.5
-                self.dx = vec_dx / dist * 2
-                self.dy = vec_dy / dist * 2
+                u,v = self.trajectory[0] # next destination
+                vx = (u - self.x)
+                vy = (v - self.y)
+                dist = (vx*vx + vy*vy)**.5
+                self.dx = vx / dist * 2
+                self.dy = vy / dist * 2
 
             if 100 < self.y < 104: # shooting the bullet
                 tekibullets.append(TekiBullet(self.x-16+pyxel.rndi(0,16) , self.y+16 , (self.dx * pyxel.rndf(1,2))/4))
 
-            if self.y > APP_HEIGHT + 32:
+            if APP_HEIGHT + 32 < self.y :
                 self.y = -16
+                flyable_enemy_count += 1
                 self.is_return = True
-                teki_flyable += 1
             
         else:
             # default behavior : enemy moves as the group
@@ -150,21 +146,12 @@ class Teki():
             for p1,p2 in zip(self.trajectory,self.trajectory[1:]):pyxel.line(p1[0], p1[1], p2[0], p2[1], 7)
 
     def start_core(self): # shared logic
+        self.trajectory = [[self.x+32*self.dx,self.y-32],[self.x+64*self.dx,self.y+10],[self.x-16+16*self.dx,self.y+20]]
         self.is_flying = True
         px=self.x+myship.x
         py=self.y+myship.y
         self.trajectory += [  [px/4,py/4], [px/3,py/3], [px/2,py/2],  [px/3*2,py/3*2],[px/4*3,py/4*3],[myship.x,myship.y],[px/2*3,py/2*3],[self.x, APP_HEIGHT+64]] # last pos should be out of screen
         self.dy = -1
-
-    def start_right(self):# enemy move from rightside
-        self.trajectory = [            [self.x+32,self.y-32],[self.x+64,self.y+10],[self.x,self.y+20]        ]
-        self.start_core()
-        self.dx = 1
-
-    def start_left(self):# enemy move from leftside
-        self.trajectory = [            [self.x-32,self.y-32],[self.x-64,self.y+10],[self.x-32,self.y+20]        ]
-        self.start_core()
-        self.dx = -1
 
     def check_hit(self,shipx,shipy) -> bool:
         return abs(shipx - self.x) < 12 and abs(shipy - self.y) < 12
@@ -264,13 +251,13 @@ class App():
         myship.__init__() # need this with vertical freedom, otherwise instant gameover 
 
     def init_stage(self):
-        global teki_flyable,bullet_list,tekibullets,score,stage_number
+        global flyable_enemy_count,bullet_list,tekibullets,score,stage_number
         
         bullet_list = []# need to empty otherwise, instant death could happen
         tekibullets = []# need to empty otherwise, instant death could happen
     
         stage_number += 1
-        teki_flyable = stage_number + 1
+        flyable_enemy_count = stage_number + 1 # simultaneous fly increases
         self.counter = 0
         enemy_group.list = [[Teki(x*10,i*20,i) for x in R] for i, R in enumerate( ((4,10),range(2,14,2),range(0,16,2), range(0,16,2) ))]
 
