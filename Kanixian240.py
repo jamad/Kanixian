@@ -12,7 +12,6 @@ bullets = []
 tekibullets = []
 messages = []
 score = 0
-
 teki_movable = 0
 
 class Message():# hit score on screen 
@@ -142,38 +141,34 @@ class Teki():
         else:
             pyxel.blt(self.x,self.y,0,(self.cnt//24)%2*16,48+self.num*16,16,16,0)
 
-    def start_right(self):
+    def start_core(self): # shared logic
+        self.dest_list += [
+            [(self.x+myship.x)/4,(self.y+myship.y)/4],
+            [(self.x+myship.x)/3,(self.y+myship.y)/3],
+            [(self.x+myship.x)/2,(self.y+myship.y)/2],
+            [(self.x+myship.x)/3*2,(self.y+myship.y)/3*2],
+            [(self.x+myship.x)/4*3,(self.y+myship.y)/4*3],
+            [myship.x,myship.y],
+            [(self.x+myship.x)/2*3,(self.y+myship.y)/2*3],
+            [self.x,APP_HEIGHT+64]
+        ]
+        self.dy = -1
+        self.is_move = True
+
+    def start_right(self):# enemy move from rightside
         self.dest_list = [
             [self.x+32,self.y-32],[self.x+64,self.y+10],
-            [self.x,self.y+20],
-            [(self.x+myship.x)/4,(self.y+myship.y)/4],
-            [(self.x+myship.x)/3,(self.y+myship.y)/3],
-            [(self.x+myship.x)/2,(self.y+myship.y)/2],
-            [(self.x+myship.x)/3*2,(self.y+myship.y)/3*2],
-            [(self.x+myship.x)/4*3,(self.y+myship.y)/4*3],
-            [myship.x,myship.y],
-            [(self.x+myship.x)/2*3,(self.y+myship.y)/2*3],
-            [self.x,APP_HEIGHT+64]
+            [self.x,self.y+20]
         ]
+        self.start_core()
         self.dx =  1
-        self.dy = -1
-        self.is_move = True
-    def start_left(self):
+    def start_left(self):# enemy move from leftside
         self.dest_list = [
             [self.x-32,self.y-32],[self.x-64,self.y+10],
-            [self.x-32,self.y+20],
-            [(self.x+myship.x)/4,(self.y+myship.y)/4],
-            [(self.x+myship.x)/3,(self.y+myship.y)/3],
-            [(self.x+myship.x)/2,(self.y+myship.y)/2],
-            [(self.x+myship.x)/3*2,(self.y+myship.y)/3*2],
-            [(self.x+myship.x)/4*3,(self.y+myship.y)/4*3],
-            [myship.x,myship.y],
-            [(self.x+myship.x)/2*3,(self.y+myship.y)/2*3],
-            [self.x,APP_HEIGHT+64]
+            [self.x-32,self.y+20]
         ]
+        self.start_core()
         self.dx = -1
-        self.dy = -1
-        self.is_move = True
 
     def check_hit(self,shipx,shipy) -> bool:
         return abs(shipx - self.x) < 12 and abs(shipy - self.y) < 12
