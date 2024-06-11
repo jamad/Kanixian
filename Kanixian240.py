@@ -51,18 +51,18 @@ class Squad():   # 分隊
         if self.counter % self.interval == 0:
 
             if teki_flyable:
+
                 while 1:
-                    gyou = self.list[pyxel.rndi(0,3)] # row to select at random
-                    if gyou!=[]:break
+                    row = self.list[pyxel.rndi(0,3)] # row to select at random
+                    if row!=[]:break
+
+                col=pyxel.rndi(0,len(row)-1)# choose col at random
+                row[col].is_flying == False
 
                 # 50% randomness to fly from left or right
-                side=pyxel.rndi(0,1) # 0 or 1
-                if side:
-                    if gyou[0].is_flying == False:
-                        gyou[0].start_left()
-                else:
-                    if gyou[-1].is_flying == False:
-                        gyou[-1].start_right()
+                if pyxel.rndi(0,1):row[col].start_left()
+                else:row[col].start_right()
+
                 teki_flyable -= 1
 
         ### list中の敵が弾に当たったかの判定と削除
