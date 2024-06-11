@@ -1,9 +1,8 @@
 import pyxel
-import math
 
 APP_WIDTH = APP_HEIGHT = 240
 
-stars = []
+star_list = []
 message_list = []
 score = 0
 
@@ -75,7 +74,7 @@ class Squad():   # 分隊
                         bullets.remove(bullet)
                         pyxel.play(1,1)
 
-squad = Squad(12,16) 
+squad_instance = Squad(12,16) 
 
 class Teki():
     def __init__(self,rx,ry,num) -> None:
@@ -85,17 +84,17 @@ class Teki():
         self.num = num
         self.is_flying = False # flying
         self.is_return = False
-        self.x = squad.x + self.rx
-        self.y = squad.y + self.ry
+        self.x = squad_instance.x + self.rx
+        self.y = squad_instance.y + self.ry
         self.dest_list = []
 
     def update(self):
         global teki_flyable
         self.cnt += 1
         if self.is_return:
-            self.x = (self.x + squad.x + self.rx) / 2
-            self.y = (self.y + squad.y + self.ry) / 2
-            if round(self.x) == round(squad.x + self.rx) and round(self.y) == round(squad.y + self.ry):
+            self.x = (self.x + squad_instance.x + self.rx) / 2
+            self.y = (self.y + squad_instance.y + self.ry) / 2
+            if round(self.x) == round(squad_instance.x + self.rx) and round(self.y) == round(squad_instance.y + self.ry):
                 self.is_flying = False
                 self.is_return = False
 
@@ -113,7 +112,7 @@ class Teki():
                     dest = self.dest_list[0]
                     vec_dx = (dest[0] - self.x)
                     vec_dy = (dest[1] - self.y)
-                    vec_len = math.sqrt(vec_dx * vec_dx + vec_dy * vec_dy)
+                    vec_len = (vec_dx * vec_dx + vec_dy * vec_dy)**.5
                     self.dx = (vec_dx / vec_len) * 2
                     self.dy = (vec_dy / vec_len) * 2
             if self.y > 100 and self.y < 104:
@@ -124,8 +123,8 @@ class Teki():
                 teki_flyable += 1
             
         else:
-            self.x = squad.x + self.rx
-            self.y = squad.y + self.ry
+            self.x = squad_instance.x + self.rx
+            self.y = squad_instance.y + self.ry
 
     def draw(self):
         # pyxel.blt(x,y,atlas_image,u,v,w,h, mask_color) 
@@ -225,7 +224,7 @@ class App():
         pyxel.load("kani.pyxres")
 
         for i in range(50):       ### 背景として流れる★
-            stars.append(Star())
+            star_list.append(Star())
         try:
             with open("hiscore.txt","r") as f:
                 self.hiscore = int(f.readline())
@@ -252,10 +251,10 @@ class App():
         tekibullets = []
         self.stage_number += 1
         teki_flyable = self.stage_number + 1
-        squad.interval = 120 - self.stage_number*6 # interval changed dependent on stage_number
+        squad_instance.interval = 120 - self.stage_number*6 # interval changed dependent on stage_number
         self.counter = 0
         
-        squad.list = [
+        squad_instance.list = [
             [Teki(x*10,0,0) for x in (4,10)],
             [Teki(x*10,20,1) for x in range(2,14,2)],
             [Teki(x*10,40,2) for x in range(0,16,2)],
@@ -266,11 +265,11 @@ class App():
         global score
 
         ### ★の更新
-        for star in stars:
+        for star in star_list:
             star.update()
             if star.y > APP_HEIGHT:
-                stars.remove(star)
-                stars.append(Star())
+                star_list.remove(star)
+                star_list.append(Star())
 
         ### ゲーム開始の判定
         if self.is_gaming == False:
@@ -281,12 +280,12 @@ class App():
             return
         
         ### ステージクリアの判定
-        if sum(map(len,squad.list))==0:
+        if sum(map(len,squad_instance.list))==0:
             self.init_stage()
             return
             
         ### ゲームオーバーの判定
-        obstacles=tekibullets+sum(squad.list,[])
+        obstacles=tekibullets+sum(squad_instance.list,[])
         for obs in obstacles:
             if obs.check_hit(myship.x,myship.y):
                 pyxel.play(2,2)
@@ -319,21 +318,21 @@ class App():
         [message_list.remove(mes)for mes in message_list if mes.cnt < 0]    ### メッセージの生存確認
         myship.update()                                             ### 自機の更新 # position by direction
         [bullet.update() for bullet in bullets+tekibullets]         ### 弾の更新
-        squad.update()                                              ### 分隊の更新
-        [teki.update() for tekis in squad.list for teki in tekis]   ### 敵の更新
+        squad_instance.update()                                              ### 分隊の更新
+        [teki.update() for tekis in squad_instance.list for teki in tekis]   ### 敵の更新
         [mes.update() for mes in message_list]                          ### メッセージの更新            
 
     def draw(self):
         pyxel.cls(0)
 
         # background
-        [star.draw()for star in stars]
+        [star.draw() for star in star_list]
 
         # core contents
         if self.is_gaming:            
             myship.draw()                                           ### 自機の描画
             [bullet.draw() for bullet in bullets+tekibullets]       ### 弾の描画
-            [teki.draw() for tekis in squad.list for teki in tekis] ### 敵の描画
+            [teki.draw() for tekis in squad_instance.list for teki in tekis] ### 敵の描画
             [mes.draw() for mes in message_list]                    ### メッセージの描画
 
             pyxel.text( APP_WIDTH//8*7,10,   f"{score}" ,7) # score info
