@@ -326,26 +326,26 @@ class App():
     def draw(self):
         pyxel.cls(0)
 
+        # background
         [star.draw()for star in stars]
 
+        # core contents
         if self.is_gaming:            
             myship.draw()                                           ### 自機の描画
             [bullet.draw() for bullet in bullets+tekibullets]       ### 弾の描画
             [teki.draw() for tekis in squad.list for teki in tekis] ### 敵の描画
             [mes.draw() for mes in message_list]                    ### メッセージの描画
 
-            pyxel.text( APP_WIDTH//8*7,10,   f"{score}" ,7)
+            pyxel.text( APP_WIDTH//8*7,10,   f"{score}" ,7) # score info
 
             ### ステージ番号の描画
-            pyxel.text(10,10,"STAGE",7)                             # `stage`
-            pyxel.text(36,10,str(self.stage_number),7)              # number of stage aka 1,2,3...
+            pyxel.text(10,10,f"STAGE : {self.stage_number}",7)                             # `stage` info
             
         else:### ゲーム開始してないときの描画
-            pyxel.text(200,220,"MOD 0.1",7)                                 # version info
-            pyxel.text(82,150,"Push BUTTON to Start",pyxel.frame_count%16)  # push to start
+            pyxel.text(82,150,"Push BUTTON to Start",pyxel.frame_count%16)  # push to start message
             pyxel.blt(-4,100,2,0,32,256,48,0)                               # title image
+            pyxel.text(200,220,"MOD 0.1",7)                                 # version info
 
-        ### スコアの描画はUIなので最後に。
+        # UI 
         pyxel.text( (APP_WIDTH)//5*2,10,    f"HI-SCORE : {self.hiscore}",7) # hi-score to display
-    
 App()
