@@ -1,6 +1,7 @@
 import pyxel
 
 APP_WIDTH = APP_HEIGHT = 240
+CHAR_SIZE=16 
 
 star_list = []
 message_list = []
@@ -107,24 +108,29 @@ class Teki():
             self.x += self.dx
             self.y += self.dy
 
-            dest = self.dest_list[0]
+            tx,ty = self.dest_list[0]# target position
 
-            rx = abs(self.x - dest[0]) 
-            ry = abs(self.y - dest[1])
+            rx = abs(self.x - tx) 
+            ry = abs(self.y - ty)
             
             if rx < 1 and ry < 1:
+                
                 self.dest_list.pop(0)
+
                 if len(self.dest_list) == 0:
                     self.is_flying = False
                 else:
                     dest = self.dest_list[0]
+
                     vec_dx = (dest[0] - self.x)
                     vec_dy = (dest[1] - self.y)
                     vec_len = (vec_dx * vec_dx + vec_dy * vec_dy)**.5
                     self.dx = (vec_dx / vec_len) * 2
                     self.dy = (vec_dy / vec_len) * 2
-            if self.y > 100 and self.y < 104:
-                tekibullets.append(TekiBullet(self.x-16+pyxel.rndi(0,16),self.y+16,(self.dx * pyxel.rndf(1,2))/4))
+
+            if 100 < self.y < 104: # shooting the bullet
+                tekibullets.append(TekiBullet(self.x-16+pyxel.rndi(0,16) , self.y+16 , (self.dx * pyxel.rndf(1,2))/4))
+
             if self.y > APP_HEIGHT + 32:
                 self.y = -16
                 self.is_return = True
@@ -155,6 +161,7 @@ class Teki():
         self.dest_list = [            [self.x+32,self.y-32],[self.x+64,self.y+10],[self.x,self.y+20]        ]
         self.start_core()
         self.dx =  1
+
     def start_left(self):# enemy move from leftside
         self.dest_list = [            [self.x-32,self.y-32],[self.x-64,self.y+10],[self.x-32,self.y+20]        ]
         self.start_core()
@@ -195,7 +202,7 @@ class TekiBullet():
     def __init__(self,x,y,dx) -> None:
         self.x = x
         self.y = y
-        self.dx = dx
+        self.dx = dx # horizontal velocity
     
     def update(self):
         self.x += self.dx
@@ -205,7 +212,7 @@ class TekiBullet():
         pyxel.rect(self.x,self.y,2,8,7)
 
     def check_hit(self,shipx,shipy):
-        return self.x-14 < shipx < self.x-3 and self.y-14 < shipy < self.y-2
+        return self.x-14 < shipx < self.x-2 and self.y-14 < shipy < self.y-2
 
 class Myship():
     def __init__(self) -> None:
