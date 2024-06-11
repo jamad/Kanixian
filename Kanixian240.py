@@ -8,11 +8,8 @@ LAXIS = [pyxel.GAMEPAD1_AXIS_LEFTY,pyxel.GAMEPAD1_AXIS_LEFTY,         pyxel.GAME
 LAXIS_RANGE = [[10000,36000],[-36000,-10000],[10000,36000],[-36000,-10000]]
 
 stars = []
-bullets = []
-tekibullets = []
 message_list = []
 score = 0
-teki_flyable = 0 # what is it for? it can be 1,2,3,4,5,...
 
 class Message():# hit score on screen 
     def __init__(self,x,y,message) -> None:
@@ -225,7 +222,7 @@ myship = Myship()
 
 class App():
     def __init__(self):
-        pyxel.init(APP_WIDTH,APP_HEIGHT,title="Kanixian MOD",fps=60,display_scale=1) 
+        pyxel.init(APP_WIDTH,APP_HEIGHT,title="Kanixian MOD",fps=60,display_scale=2) 
         pyxel.load("kani.pyxres")
 
         for i in range(50):       ### 背景として流れる★
@@ -251,6 +248,7 @@ class App():
 
     def init_stage(self):
         global teki_flyable,bullets,tekibullets,score
+        print('initializing stage...')
         bullets = []
         tekibullets = []
         self.stage_number += 1
