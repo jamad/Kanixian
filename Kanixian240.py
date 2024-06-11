@@ -359,14 +359,10 @@ class App():
         for star in stars:star.draw()
 
         if self.is_gaming:            
-            ### 自機の描画
-            myship.draw()
-            ### 弾の描画
-            [bullet.draw() for bullet in bullets+tekibullets]
-            ### 敵の描画
-            [teki.draw() for tekis in squad.list for teki in tekis]
-            ### メッセージの描画
-            [mes.draw() for mes in messages]
+            myship.draw()                                           ### 自機の描画
+            [bullet.draw() for bullet in bullets+tekibullets]       ### 弾の描画
+            [teki.draw() for tekis in squad.list for teki in tekis] ### 敵の描画
+            [mes.draw() for mes in messages]                        ### メッセージの描画
 
             ### ステージ番号の描画
             pyxel.blt(10,10,1,0,0,40,16,0)
