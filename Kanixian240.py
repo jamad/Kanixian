@@ -34,7 +34,7 @@ class Squad():   # 分隊
         self.dx = 0.2
         self.list = [[],[],[],[]]
         self.counter = 1
-        self.interval = 60
+        self.interval = 60 # attach interval
     def update(self):
         global teki_movable,score,messages
         self.counter += 1
@@ -48,25 +48,28 @@ class Squad():   # 分隊
 
         ### 移動開始させるかどうかの判定
         if self.counter % self.interval == 0:
+            
             if teki_movable > 0:
-                gyou = self.list[pyxel.rndi(0,3)]
-                while len(gyou) == 0:
-                    gyou = self.list[pyxel.rndi(0,3)]
-                if pyxel.rndi(0,1) == 0:
-                    if gyou[0].is_move == False:
+                while 1:
+                    gyou = self.list[pyxel.rndi(0,3)] # row to select at random
+                    if gyou!=[]:break
+
+                # 50% randomness to fly from left or right
+                side=pyxel.rndi(0,1) # 0 or 1
+                if side:
+                    if gyou[0].is_flying == False:
                         gyou[0].start_left()
-                        teki_movable -= 1
                 else:
-                    if gyou[-1].is_move == False:
+                    if gyou[-1].is_flying == False:
                         gyou[-1].start_right()
-                        teki_movable -= 1
+                teki_movable -= 1
 
         ### list中の敵が弾に当たったかの判定と削除
         for y in reversed(range(4)):
             for teki in self.list[y]:
                 for bullet in bullets:
                     if bullet.check_hit(teki.x,teki.y):
-                        if teki.is_move:
+                        if teki.is_flying:
                             teki_movable += 1
                             ds=y and 30 or 150   
                         else:ds=10
@@ -84,7 +87,7 @@ class Teki():
         self.ry = ry
         self.cnt = pyxel.rndi(0,100)
         self.num = num
-        self.is_move = False
+        self.is_flying = False # flying
         self.is_return = False
         self.x = squad.x + self.rx
         self.y = squad.y + self.ry
@@ -97,9 +100,9 @@ class Teki():
             self.x = (self.x + squad.x + self.rx) / 2
             self.y = (self.y + squad.y + self.ry) / 2
             if round(self.x) == round(squad.x + self.rx) and round(self.y) == round(squad.y + self.ry):
-                self.is_move = False
+                self.is_flying = False
                 self.is_return = False
-        elif self.is_move:
+        elif self.is_flying:
             self.x += self.dx
             self.y += self.dy
             dest = self.dest_list[0]
@@ -108,7 +111,7 @@ class Teki():
             if rx < 1 and ry < 1:
                 self.dest_list.pop(0)
                 if len(self.dest_list) == 0:
-                    self.is_move = False
+                    self.is_flying = False
                 else:
                     dest = self.dest_list[0]
                     vec_dx = (dest[0] - self.x)
@@ -129,7 +132,7 @@ class Teki():
 
     def draw(self):
         # pyxel.blt(x,y,atlas_image,u,v,w,h, mask_color) 
-        u=self.is_move and 2+(0<self.dx) or (self.cnt//24)%2 
+        u=self.is_flying and 2+(0<self.dx) or (self.cnt//24)%2 
         v=self.num+3
         pyxel.blt(self.x,self.y,0, u*16 ,v*16 ,16,16,0)
 
@@ -145,7 +148,7 @@ class Teki():
             [self.x,APP_HEIGHT+64]
         ]
         self.dy = -1
-        self.is_move = True
+        self.is_flying = True
 
     def start_right(self):# enemy move from rightside
         self.dest_list = [            [self.x+32,self.y-32],[self.x+64,self.y+10],[self.x,self.y+20]        ]
