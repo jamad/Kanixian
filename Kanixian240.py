@@ -172,19 +172,19 @@ class Star():
         if pyxel.rndi(1,3) <2 :#blinking. showing at 33%
             pyxel.pset(self.x,self.y,self.color)
 
-class Bullet():
+class Bullet():# my bullet
     def __init__(self, x, y) -> None:
         self.x = x
         self.y = y
 
     def update(self):
-        self.y -= 4
+        self.y -= 3 # changed from 4 to 3
 
     def draw(self):
         pyxel.rect(self.x,self.y,2,4,10)
         
     def check_hit(self,tekix,tekiy):
-        return self.x-14 < tekix < self.x-1 and self.y-16 < tekiy < self.y
+        return self.x-16 < tekix < self.x and self.y-16 < tekiy < self.y
 
 class TekiBullet():
     def __init__(self,x,y,dx) -> None:
@@ -277,7 +277,6 @@ class App():
                 self.is_gaming = True
             return
         
-        
         ### ステージクリアの判定
         if sum(map(len,squad.list))==0:
             self.init_stage()
@@ -294,14 +293,13 @@ class App():
         ### ステージ開始からの経過フレーム数の更新
         self.counter += 1
 
-        ### 自機の移動判定
-        myship.dir = 4   # 移動無し
-        
         KEY = [pyxel.KEY_DOWN, pyxel.KEY_UP, pyxel.KEY_RIGHT, pyxel.KEY_LEFT]
         GPAD = [pyxel.GAMEPAD1_BUTTON_DPAD_DOWN,        pyxel.GAMEPAD1_BUTTON_DPAD_UP,        pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT,        pyxel.GAMEPAD1_BUTTON_DPAD_LEFT]
         LAXIS = [pyxel.GAMEPAD1_AXIS_LEFTY,pyxel.GAMEPAD1_AXIS_LEFTY,         pyxel.GAMEPAD1_AXIS_LEFTX,pyxel.GAMEPAD1_AXIS_LEFTX]
         LAXIS_RANGE = [[10000,36000],[-36000,-10000],[10000,36000],[-36000,-10000]]
 
+        ### 自機の移動判定
+        myship.dir = 4   # 移動無し
         for i in range(2,4):
             if pyxel.btn(KEY[i]) or  LAXIS_RANGE[i][0] < pyxel.btnv(LAXIS[i]) < LAXIS_RANGE[i][1] or pyxel.btn(GPAD[i]): # key, analogstick, Dpad
                 myship.dir = i   # 移動有り
@@ -347,6 +345,7 @@ class App():
         if score >= 100:pyxel.blt(APP_WIDTH - 8*3-10,10,1,0,score//100%10*16+16,8,16,0)
         if score >= 10:pyxel.blt(APP_WIDTH - 8*2-10,10,1,0,score//10%10*16+16,8,16,0)
         pyxel.blt(APP_WIDTH - 8*1-10,10,1,0,score%10*16+16,8,16,0)
+
         sc = self.hiscore
         if sc >= 1000:pyxel.blt(APP_WIDTH - 8*4-100,10,1,0,sc//1000%10*16+16,8,16,0)
         if sc >= 100:pyxel.blt(APP_WIDTH - 8*3-100,10,1,0,sc//100%10*16+16,8,16,0)
