@@ -12,7 +12,7 @@ bullets = []
 tekibullets = []
 messages = []
 score = 0
-teki_movable = 0 # what is it for? 
+teki_flyable = 0 # what is it for? it can be 1,2,3,4,5,...
 
 class Message():# hit score on screen 
     def __init__(self,x,y,message) -> None:
@@ -35,8 +35,9 @@ class Squad():   # 分隊
         self.list = [[],[],[],[]]
         self.counter = 1
         self.interval = 60 # attach interval
+
     def update(self):
-        global teki_movable,score,messages
+        global teki_flyable,score,messages
         self.counter += 1
         self.x += self.dx
         if self.x > self.start_x + 60:
@@ -48,8 +49,8 @@ class Squad():   # 分隊
 
         ### 移動開始させるかどうかの判定
         if self.counter % self.interval == 0:
-            
-            if teki_movable > 0:
+
+            if teki_flyable:
                 while 1:
                     gyou = self.list[pyxel.rndi(0,3)] # row to select at random
                     if gyou!=[]:break
@@ -62,16 +63,18 @@ class Squad():   # 分隊
                 else:
                     if gyou[-1].is_flying == False:
                         gyou[-1].start_right()
-                teki_movable -= 1
+                teki_flyable -= 1
 
         ### list中の敵が弾に当たったかの判定と削除
         for y in reversed(range(4)):
             for teki in self.list[y]:
                 for bullet in bullets:
                     if bullet.check_hit(teki.x,teki.y):
+
                         if teki.is_flying:
-                            teki_movable += 1
+                            teki_flyable += 1
                             ds=y and 30 or 150   
+
                         else:ds=10
                         score += ds
                         messages.append(Message(teki.x+4+2*(ds==150),teki.y+6,f"{ds}"))
@@ -94,7 +97,7 @@ class Teki():
         self.dest_list = []
 
     def update(self):
-        global teki_movable
+        global teki_flyable
         self.cnt += 1
         if self.is_return:
             self.x = (self.x + squad.x + self.rx) / 2
@@ -124,7 +127,7 @@ class Teki():
             if self.y > APP_HEIGHT + 32:
                 self.y = -16
                 self.is_return = True
-                teki_movable += 1
+                teki_flyable += 1
             
         else:
             self.x = squad.x + self.rx
@@ -247,11 +250,11 @@ class App():
         self.is_gaming = False
 
     def init_stage(self):
-        global teki_movable,bullets,tekibullets,score
+        global teki_flyable,bullets,tekibullets,score
         bullets = []
         tekibullets = []
         self.stage_number += 1
-        teki_movable = self.stage_number + 1
+        teki_flyable = self.stage_number + 1
         squad.interval = 120 - self.stage_number*6
         self.counter = 0
         
