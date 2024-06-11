@@ -2,10 +2,6 @@ import pyxel
 import math
 
 APP_WIDTH = APP_HEIGHT = 240
-KEY = [pyxel.KEY_DOWN, pyxel.KEY_UP, pyxel.KEY_RIGHT, pyxel.KEY_LEFT]
-GPAD = [pyxel.GAMEPAD1_BUTTON_DPAD_DOWN,        pyxel.GAMEPAD1_BUTTON_DPAD_UP,        pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT,        pyxel.GAMEPAD1_BUTTON_DPAD_LEFT]
-LAXIS = [pyxel.GAMEPAD1_AXIS_LEFTY,pyxel.GAMEPAD1_AXIS_LEFTY,         pyxel.GAMEPAD1_AXIS_LEFTX,pyxel.GAMEPAD1_AXIS_LEFTX]
-LAXIS_RANGE = [[10000,36000],[-36000,-10000],[10000,36000],[-36000,-10000]]
 
 stars = []
 message_list = []
@@ -300,6 +296,12 @@ class App():
 
         ### 自機の移動判定
         myship.dir = 4   # 移動無し
+        
+        KEY = [pyxel.KEY_DOWN, pyxel.KEY_UP, pyxel.KEY_RIGHT, pyxel.KEY_LEFT]
+        GPAD = [pyxel.GAMEPAD1_BUTTON_DPAD_DOWN,        pyxel.GAMEPAD1_BUTTON_DPAD_UP,        pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT,        pyxel.GAMEPAD1_BUTTON_DPAD_LEFT]
+        LAXIS = [pyxel.GAMEPAD1_AXIS_LEFTY,pyxel.GAMEPAD1_AXIS_LEFTY,         pyxel.GAMEPAD1_AXIS_LEFTX,pyxel.GAMEPAD1_AXIS_LEFTX]
+        LAXIS_RANGE = [[10000,36000],[-36000,-10000],[10000,36000],[-36000,-10000]]
+
         for i in range(2,4):
             if pyxel.btn(KEY[i]) or  LAXIS_RANGE[i][0] < pyxel.btnv(LAXIS[i]) < LAXIS_RANGE[i][1] or pyxel.btn(GPAD[i]): # key, analogstick, Dpad
                 myship.dir = i   # 移動有り
