@@ -22,27 +22,21 @@ class Message():# hit score on screen
         pyxel.text(self.x,self.y,self.mes,7)
 
 class Squad():   # 分隊
-    def __init__(self,x=12,y=16) -> None:
-        self.start_x = x  # 分隊全体の左上の座標
-        self.x = x
-        self.y = y
+    def __init__(self) -> None:
+        #self.start_x = 12  # 分隊全体の左上の座標
+        self.x = 12
+        self.y = 16
         self.dx = 0.2
         self.list = [[],[],[],[]]
         self.counter = 1
-        self.interval = 60 # attach interval
+        self.interval = 60 #  interval to attack
 
     def update(self):
         global teki_flyable,score,message_list
         self.counter += 1
         self.x += self.dx
 
-
-        if self.x > self.start_x + 60:
-            self.x = self.start_x + 60
-            self.dx = -self.dx
-        elif self.x < self.start_x:
-            self.x = self.start_x
-            self.dx = -self.dx
+        if 72 <self.x or self.x < 12: self.dx *= -1 # reverse direction
 
         ### 移動開始させるかどうかの判定
         if self.counter % self.interval == 0:
