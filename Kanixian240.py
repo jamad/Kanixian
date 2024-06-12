@@ -5,10 +5,25 @@ debugdisp=0
 APP_WIDTH = APP_HEIGHT = 240
 CHAR_SIZE=16 
 
-star_list = []
 message_list = []
 score = 0
-stage_number=0 # used in App, Squad
+stage_number=0 # global variable because it is used in Squad as well as App
+
+
+class Star():
+    def __init__(self):
+        self.x = pyxel.rndi(0,APP_WIDTH )
+        self.y = pyxel.rndi(0,APP_HEIGHT)
+        self.color = pyxel.rndi(5,7)
+        self.speed =  self.color/4 -1
+
+    def update(self):
+        global stage_number
+        self.y += self.speed* ( stage_number+1)* 0.2 # scroll
+
+    def draw(self):
+        if pyxel.rndi(1,3) <2 :#blinking. showing at 33%
+            pyxel.pset(self.x,self.y,self.color)
 
 class Message():# hit score on screen 
     def __init__(self,x,y,message) -> None:
@@ -86,15 +101,14 @@ class Teki():
 
         # returning, flying or moving as the group member
         if self.is_return: 
-            # enemy is out of screen, returning to the default position
-
+            # enemy is out of screen, returning to the target position aka default position
             tx=enemy_group.x + self.rposx
             ty=enemy_group.y + self.rposy
             
             self.x = (self.x + tx) / 2
             self.y = (self.y + ty) / 2
 
-            if round(self.x) == round(tx) and round(self.y) == round(ty):
+            if abs(self.x-tx)<1 and abs(self.y-ty)<1:
                 self.is_flying = False # otherwise, enemy starts to fly again
                 self.is_return = False
 
@@ -126,7 +140,8 @@ class Teki():
 
             if APP_HEIGHT + 32 < self.y : # out of screen, so teleport it to the top of the screen
                 self.is_return = True
-                self.y = -16
+                self.y = -CHAR_SIZE*10
+                self.x = APP_WIDTH / 2
                 flyable_enemy_count += 1
             
         else:
@@ -155,19 +170,6 @@ class Teki():
     def check_hit(self,shipx,shipy) :
         return abs(shipx - self.x) < 12 and abs(shipy - self.y) < 12
 
-class Star():
-    def __init__(self):
-        self.x = pyxel.rndi(0,APP_WIDTH )
-        self.y = pyxel.rndi(0,APP_HEIGHT)
-        self.color = pyxel.rndi(5,7)
-        self.speed =  self.color/4 -1
-
-    def update(self):
-        self.y += self.speed # scroll
-
-    def draw(self):
-        if pyxel.rndi(1,3) <2 :#blinking. showing at 33%
-            pyxel.pset(self.x,self.y,self.color)
 
 class Bullet():# my bullet
     def __init__(self, x, y) -> None:
@@ -234,7 +236,7 @@ class App():
             self.hiscore=0
             with open("hiscore.txt","w") as f:f.write(f'{self.hiscore}')
 
-        for i in range(50):star_list.append(Star())### 背景として流れる★
+        self.stars=[Star()for i in range(60)]#background stars
         self.init_game()
         pyxel.run(self.update,self.draw)
 
@@ -264,11 +266,11 @@ class App():
     def update(self):
         global score
 
-        for star in star_list:
+        for star in self.stars:
             star.update()
             if star.y > APP_HEIGHT:
-                star_list.remove(star)
-                star_list.append(Star())
+                self.stars.remove(star)
+                self.stars.append(Star())
 
         ### ゲーム開始の判定
         if self.is_gaming == False:
@@ -316,20 +318,19 @@ class App():
         pyxel.cls(0)
 
         # background
-        [star.draw() for star in star_list]
+        [star.draw() for star in self.stars]
 
         # core contents
         if self.is_gaming:            
-            [teki.draw() for tekis in enemy_group.list for teki in tekis]   ### 敵の描画
-            [bullet.draw() for bullet in bullet_list+tekibullets]           ### 弾の描画
-            myship.draw()                                                   ### 自機の描画
-            [mes.draw() for mes in message_list]                            ### メッセージの描画
-
+            [teki.draw() for tekis in enemy_group.list for teki in tekis]   # 敵の描画
+            [bullet.draw() for bullet in bullet_list+tekibullets]           # 弾の描画
+            myship.draw()                                                   # 自機の描画
+            [mes.draw() for mes in message_list]                            # メッセージの描画
             pyxel.text( APP_WIDTH//8*7,10,   f"{score}" ,7)                 # score info
             pyxel.text(10,10,f"STAGE : {stage_number}",7)                   # stage info
         else:
-            pyxel.text(82,150,"Push BUTTON to Start",pyxel.frame_count%30)  # push to start message
             pyxel.blt(-4,100,2,0,32,256,48,0)                               # title image
+            pyxel.text(82,150,"Push BUTTON to Start",pyxel.frame_count%30)  # push to start message
             pyxel.text(200,220,"MOD 0.1",7)                                 # version info
 
         # UI 
