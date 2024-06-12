@@ -58,7 +58,8 @@ class Squad():
             if flyable_enemy_count:
                 flyable_enemy_count -= 1
 
-                while not(row := self.list[pyxel.rndi(0, 3)]):continue # select non empty row at random 
+                while not(row := self.list[pyxel.rndi(0, len(enemy_group.list)-1)]):
+                    continue # select non empty row at random 
                 col=pyxel.rndi(0,len(row)-1)# choose col at random
                 row[col].is_flying =True 
 
@@ -67,7 +68,7 @@ class Squad():
                 row[col].fly()
                 
         ### list中の敵が弾に当たったかの判定と削除
-        for row in reversed(range(4)):
+        for row in reversed(range(len(enemy_group.list))):
             for teki in self.list[row]:
                 for bullet in bullet_list:
                     if bullet.check_hit(teki.x,teki.y):
@@ -87,7 +88,7 @@ class Teki():
     def __init__(self,rx,ry,num): # rx,ry: relative position in group, num: row id from top
         self.rposx = rx
         self.rposy = ry
-        self.num = num
+        self.num = min(3,num)
         self.cnt = pyxel.rndi(0,60) # used for animation pattern randomness
         self.is_flying = False # flying
         self.is_return = False
@@ -196,7 +197,7 @@ class TekiBullet():
 class Myship():
     def __init__(self) -> None:
         self.x = (APP_WIDTH-CHAR_SIZE)/2 # center 
-        self.y = APP_HEIGHT - CHAR_SIZE*2
+        self.y = APP_HEIGHT - CHAR_SIZE*4
         self.img=4 # default image to display
 
     def update(self): ### user input to move myship
@@ -253,7 +254,7 @@ class App():
         stage_number += 1
         flyable_enemy_count = stage_number + 1 # simultaneous fly increases
         self.counter = 0
-        enemy_group.list = [[Teki(x*10,i*20,i)for x in R] for i, R in enumerate( [(4,10),range(2,14,2)]+[range(0,16,2)]*2 )]
+        enemy_group.list = [[Teki(x*10,i*20,i)for x in R] for i, R in enumerate( [(4,10),range(2,14,2)]+[range(0,16,2)]*5 )]
 
     def update(self):
         global score
@@ -321,9 +322,9 @@ class App():
             pyxel.text( APP_WIDTH//8*7,10,   f"{score}" ,7)                 # score info
             pyxel.text(10,10,f"STAGE : {stage_number}",7)                   # stage info
         else:
-            pyxel.blt(APP_WIDTH//4,APP_HEIGHT//2-100,2,0,32,256,48,0)                                   # title image
+            pyxel.blt(APP_WIDTH//4,APP_HEIGHT//2-50,2,0,32,256,48,0)                                   # title image
             pyxel.text(82+APP_WIDTH//4,APP_HEIGHT//2+50,"Push BUTTON to Start",pyxel.frame_count%30)    # push to start message
-            pyxel.text(APP_WIDTH//2+200,APP_HEIGHT-50,"MOD 0.1",7)                                      # version info
+            pyxel.text(APP_WIDTH//2+180,APP_HEIGHT-50,"MOD 0.1",7)                                      # version info
 
         # UI 
         pyxel.text( (APP_WIDTH)//5*2,10,    f"HI-SCORE : {self.hiscore}",7) # hi-score to display
