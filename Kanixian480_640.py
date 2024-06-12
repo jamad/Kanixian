@@ -40,7 +40,7 @@ class Message():# hit score on screen
 
 class Squad():
     def __init__(self):
-        self.x, self.y = 12 + APP_WIDTH//4, CHAR_SIZE*4
+        self.x, self.y = CHAR_SIZE*6, CHAR_SIZE*4
         self.dx = 0.2
         self.list = [[],[],[],[]] # enemy arrays
 
@@ -48,7 +48,7 @@ class Squad():
         global flyable_enemy_count,score,message_list, stage_number
 
         self.x += self.dx # horizontal group move
-        if not (12 + APP_WIDTH//4 <= self.x <= 72*2+ APP_WIDTH//4): self.dx *= -1 # reverse direction
+        if not (CHAR_SIZE <= self.x <= CHAR_SIZE*9): self.dx *= -1 # reverse direction
 
         ### 移動開始させるかどうかの判定
         attack_interval=max(1,60-stage_number*4)# dynamic interval dependent on stage number
@@ -254,7 +254,8 @@ class App():
         stage_number += 1
         flyable_enemy_count = stage_number + 1 # simultaneous fly increases
         self.counter = 0
-        enemy_group.list = [[Teki(x*10,i*20,i)for x in R] for i, R in enumerate( [(4,10),range(2,14,2)]+[range(0,16,2)]*5 )]
+        MAX_COL_NUM=16*2
+        enemy_group.list = [[Teki(x*10,i*20,i)for x in R] for i, R in enumerate( [(4+3*2,10+5*2),range(2,MAX_COL_NUM-2,2)]+[range(0,MAX_COL_NUM,2)]*5 )]
 
     def update(self):
         global score
