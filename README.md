@@ -4,7 +4,8 @@
 - fork して改変することでプログラミングを学習中
 
 ## 遊び方
-- ゲームパッド(anaglog-Stick / Dpad +  A / B) or キーボード (<> + Space) で操作可能
+- wasmのリンクからの起動　キーボード (<> + Space) でのみ操作可能　（gamepad で操作できない理由は不明）
+- .py ファイルでの起動　ゲームパッド(anaglog-Stick / Dpad +  A / B) でも　操作可能
 
 ## Note during the modding
 -  https://github.com/jamad/Kanixian/wiki
