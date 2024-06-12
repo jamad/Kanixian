@@ -40,7 +40,7 @@ class Message():# hit score on screen
 
 class Squad():
     def __init__(self):
-        self.x, self.y = 12, 16
+        self.x, self.y = 12 + APP_WIDTH//4, 16
         self.dx = 0.2
         self.list = [[],[],[],[]] # enemy arrays
 
@@ -48,7 +48,7 @@ class Squad():
         global flyable_enemy_count,score,message_list, stage_number
 
         self.x += self.dx # horizontal group move
-        if not (12 <= self.x <= 72): self.dx *= -1 # reverse direction
+        if not (12 + APP_WIDTH//4 <= self.x <= 72*2+ APP_WIDTH//4): self.dx *= -1 # reverse direction
 
         ### 移動開始させるかどうかの判定
         attack_interval=max(1,60-stage_number*4)# dynamic interval dependent on stage number
