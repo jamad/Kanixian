@@ -1,4 +1,4 @@
-import pyxel
+import pyxel , math
 
 debugdisp=0
 
@@ -42,12 +42,17 @@ class Squad():
     def __init__(self):
         self.x, self.y = CHAR_SIZE*6, CHAR_SIZE*4
         self.dx = 0.2
+        self.dy = 0
         self.list = [[],[],[],[]] # enemy arrays
 
     def update(self):
         global flyable_enemy_count,score,message_list, stage_number
 
         self.x += self.dx # horizontal group move
+
+        theta= pyxel.frame_count/180*math.pi
+        #print(theta)
+        self.y += math.sin(theta) * 0.25 # *CHAR_SIZE
         if not (CHAR_SIZE <= self.x <= CHAR_SIZE*9): self.dx *= -1 # reverse direction
 
         ### 移動開始させるかどうかの判定
