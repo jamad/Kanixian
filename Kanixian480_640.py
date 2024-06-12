@@ -57,20 +57,17 @@ class Squad():
 
         ### 移動開始させるかどうかの判定
         attack_interval=max(1,60-stage_number*4)# dynamic interval dependent on stage number
+
         if pyxel.frame_count % attack_interval == 0:
             print(f'debug teki_flyable:{flyable_enemy_count} @ {pyxel.frame_count}')
 
             if flyable_enemy_count:
                 flyable_enemy_count -= 1
-
-                while not(row := self.list[pyxel.rndi(0, len(enemy_group.list)-1)]):
-                    continue # select non empty row at random 
-                col=pyxel.rndi(0,len(row)-1)# choose col at random
-                row[col].is_flying =True 
-
-                # 50% randomness to fly from left or right
-                row[col].dx = (-1,1)[pyxel.rndi(0,1)]
-                row[col].fly()
+                enemy_alive=[enemy for row in enemy_group.list for enemy in row]
+                chosen=enemy_alive[pyxel.rndi(0,len(enemy_alive)-1)] # choose at random
+                chosen.is_flying = True
+                chosen.dx= (-1,1)[pyxel.rndi(0,1)]
+                chosen.fly()
                 
         ### list中の敵が弾に当たったかの判定と削除
         for row in reversed(range(len(enemy_group.list))):
@@ -155,7 +152,8 @@ class Teki():
 
         if debugdisp and self.is_flying:
             pyxel.text(self.x,self.y+16,f'{int(self.x)},{int(self.y)}',7)
-            for p1,p2 in zip(self.trajectory,self.trajectory[1:]):pyxel.line(p1[0], p1[1], p2[0], p2[1], 7)
+            for p1,p2 in zip(self.trajectory,self.trajectory[1:]):
+                pyxel.line(p1[0], p1[1], p2[0], p2[1], 7)
 
     def fly(self): # shared logic
         self.is_flying = True
