@@ -93,58 +93,50 @@ class Teki():
         self.is_return = False
         self.x = enemy_group.x + self.rposx # final position to draw
         self.y = enemy_group.y + self.rposy
+        self.dx=0
+        self.dy=0
         self.trajectory = []
+
+    def move(self,tx,ty):
+        
+        vx=tx-self.x
+        vy=ty-self.y
+        dist = (vx*vx + vy*vy)**.5
+        self.dx = vx / dist * 2
+        self.dy = vy / dist * 2
+        self.x += self.dx
+        self.y += self.dy
+
+        return abs(vx)<1 and abs(vy)<1
 
     def update(self):
         global flyable_enemy_count
         self.cnt += 1
+
 
         # returning, flying or moving as the group member
         if self.is_return: 
             # enemy is out of screen, returning to the target position aka default position
             tx=enemy_group.x + self.rposx
             ty=enemy_group.y + self.rposy
-            
-            vx=tx-self.x
-            vy=ty-self.y
-            
-            speed=0.15
-            self.x += vx*speed
-            self.y += vy*speed
-
-            if abs(self.x-tx)<1 and abs(self.y-ty)<1:
+            flag=self.move(tx,ty)
+            if flag: # if arrived the destination
                 self.is_flying = False # otherwise, enemy starts to fly again
                 self.is_return = False
 
         elif self.is_flying:
             # enemy is not in squad any more, flying along its trajectory
             tx,ty = self.trajectory[0]# target position
-
-            rx = abs(self.x - tx) 
-            ry = abs(self.y - ty)
-            
-            if rx < 1 and ry < 1: # if arrived the destination
+            flag=self.move(tx,ty)
+            if flag: # if arrived the destination
                 self.trajectory.pop(0)
 
-            #if len(self.trajectory) == 0:                self.is_flying = False # maybe redundant 
-            #else:
-            u,v = self.trajectory[0] # next destination
-            vx = (u-self.x)
-            vy = (v-self.y)
-            dist = (vx*vx + vy*vy)**.5
-            dx = vx / dist * 2
-            dy = vy / dist * 2
-            
-            self.x += dx
-            self.y += dy
-
-
             if 100 < self.y < 104: # shooting the bullet
-                tekibullets.append(TekiBullet(self.x-16+pyxel.rndi(0,16) , self.y+16 , (dx * pyxel.rndf(1,2))/4))
+                tekibullets.append(TekiBullet(self.x-16+pyxel.rndi(0,16) , self.y+16 , (self.dx * pyxel.rndf(1,2))/4))
 
             if APP_HEIGHT + 32 < self.y : # out of screen, so teleport it to the top of the screen
                 self.is_return = True
-                self.y = -CHAR_SIZE*10
+                self.y = -CHAR_SIZE*2
                 self.x = APP_WIDTH / 2
                 flyable_enemy_count += 1
             
