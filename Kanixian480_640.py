@@ -40,7 +40,7 @@ class Message():# hit score on screen
 
 class Squad():
     def __init__(self):
-        self.x, self.y = 12 + APP_WIDTH//4, 16
+        self.x, self.y = 12 + APP_WIDTH//4, CHAR_SIZE*4
         self.dx = 0.2
         self.list = [[],[],[],[]] # enemy arrays
 
