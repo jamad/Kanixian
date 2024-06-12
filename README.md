@@ -13,3 +13,5 @@
 
 * `https://github.com/jamad/Kanixian/blob/main/Kanixian240.py` のコードをブラウザでプレイする場合は https://kitao.github.io/pyxel/wasm/launcher/?run=jamad.Kanixian.Kanixian240
   * 但し、ゲームパッドには反応しないようだった？　マウスクリックで開始し、Enterでゲームスタート、矢印キーとスペースキーでプレイはできた。
+
+* `https://github.com/jamad/Kanixian/blob/main/Kanixian480_640.py` にファイル名を変更したので　https://kitao.github.io/pyxel/wasm/launcher/?run=jamad.Kanixian.Kanixian480_640.py
