@@ -181,7 +181,7 @@ class Bullet():# my bullet
         pyxel.rect(self.x,self.y,2,4,10)
         
     def check_hit(self,tekix,tekiy):
-        return self.x-16 < tekix < self.x and self.y-16 < tekiy < self.y
+        return self.x-CHAR_SIZE < tekix < self.x and self.y-CHAR_SIZE < tekiy < self.y
 
 class TekiBullet():
     def __init__(self,x,y,dx) -> None:
@@ -201,24 +201,25 @@ class TekiBullet():
 
 class Myship():
     def __init__(self) -> None:
-        self.x = (APP_WIDTH-16)/2 # center 
-        self.y = APP_HEIGHT - 32
-        self.img=4 # used for image to display
+        self.x = (APP_WIDTH-CHAR_SIZE)/2 # center 
+        self.y = APP_HEIGHT - CHAR_SIZE*2
+        self.img=4 # default image to display
 
-    def update(self): ### 自機移動
-        dx,dy,self.img=0,0,4
+    def update(self): ### user input to move myship
+        move_R=pyxel.btn(pyxel.KEY_RIGHT)   or  10000 <pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTX)<36000      or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT)
+        move_L=pyxel.btn(pyxel.KEY_LEFT)    or  -36000<pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTX)<-10000     or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_LEFT)
+        move_D=pyxel.btn(pyxel.KEY_DOWN)    or  10000 <pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTY)<36000      or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_DOWN)
+        move_U=pyxel.btn(pyxel.KEY_UP)      or  -36000<pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTY)<-10000     or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_UP)
 
-        # user input for myship to move
-        if pyxel.btn(pyxel.KEY_RIGHT)   or  10000 <pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTX)<36000      or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT): dx=1;   self.img=2
-        if pyxel.btn(pyxel.KEY_LEFT)    or  -36000<pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTX)<-10000     or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_LEFT):  dx=-1;  self.img=3
-        if pyxel.btn(pyxel.KEY_DOWN)    or  10000 <pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTY)<36000      or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_DOWN):  dy=1
-        if pyxel.btn(pyxel.KEY_UP)      or  -36000<pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTY)<-10000     or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_UP):    dy=-1
+        dx=move_R or -move_L # 1 or -1 or 0
+        dy=move_D or -move_U # 1 or -1 or 0
+        self.img=move_R*2 or move_L*3 or 4 # 2 or 3 or 4
 
-        self.x = min(APP_WIDTH-16,max(0,self.x+dx))# clamping
-        self.y = min(APP_HEIGHT-16,max(0, self.y+dy)) # extended y move , and clamping
+        self.x = min(APP_WIDTH -CHAR_SIZE,max(0, self.x+dx))# clamping
+        self.y = min(APP_HEIGHT-CHAR_SIZE,max(0, self.y+dy)) # extended y move , and clamping
 
     def draw(self):
-        pyxel.blt(self.x,self.y,0,self.img*16,16,16,24,0) # change image dependent on its direction
+        pyxel.blt(self.x,self.y,0,self.img*CHAR_SIZE,CHAR_SIZE,CHAR_SIZE,24,0) # change image dependent on its direction
 
 myship = Myship()
 
