@@ -33,7 +33,7 @@ class Squad():   # 分隊
         self.counter += 1
 
         self.x += self.dx # horizontal group move
-        if 72 <self.x or self.x < 12: self.dx *= -1 # reverse direction
+        if not (12 <= self.x <= 72): self.dx *= -1 # reverse direction
 
         ### 移動開始させるかどうかの判定
         attack_interval=max(1,60-stage_number*4)# dynamic interval dependent on stage number
@@ -43,7 +43,7 @@ class Squad():   # 分隊
             if flyable_enemy_count:
                 flyable_enemy_count -= 1
 
-                while(row:=self.list[pyxel.rndi(0,3)])==[]:continue # select non empty row at random 
+                while not(row := self.list[pyxel.rndi(0, 3)]):continue # select non empty row at random 
                 col=pyxel.rndi(0,len(row)-1)# choose col at random
                 row[col].is_flying =True 
 
@@ -51,24 +51,20 @@ class Squad():   # 分隊
                 row[col].dx = (-1,1)[pyxel.rndi(0,1)]
                 row[col].start_core()
                 
-                
         ### list中の敵が弾に当たったかの判定と削除
-        for y in reversed(range(4)):
-            for teki in self.list[y]:
+        for row in reversed(range(4)):
+            for teki in self.list[row]:
                 for bullet in bullet_list:
                     if bullet.check_hit(teki.x,teki.y):
-
-                        if teki.is_flying:
-                            flyable_enemy_count += 1
-                            ds=y and 30 or 150   
-                        else:
-                            ds=10
-
+                        ds =teki.is_flying and (30,150)[row==0]or 10
                         score += ds
                         message_list.append(Message(teki.x+4+2*(ds==150),teki.y+6,f"{ds}"))
-                        self.list[y].remove(teki)
+                        self.list[row].remove(teki)
                         bullet_list.remove(bullet)
                         pyxel.play(1,1)
+
+                        if teki.is_flying:
+                            flyable_enemy_count+=1 # another enemy can fly 
 
 enemy_group = Squad() 
 
@@ -91,19 +87,19 @@ class Teki():
         # returning, flying or moving as the group member
         if self.is_return: 
             # enemy is out of screen, returning to the default position
-            
-            self.x = (self.x + enemy_group.x + self.rposx) / 2
-            self.y = (self.y + enemy_group.y + self.rposy) / 2
 
-            if round(self.x) == round(enemy_group.x + self.rposx) and round(self.y) == round(enemy_group.y + self.rposy):
-                self.is_flying = False
+            tx=enemy_group.x + self.rposx
+            ty=enemy_group.y + self.rposy
+            
+            self.x = (self.x + tx) / 2
+            self.y = (self.y + ty) / 2
+
+            if round(self.x) == round(tx) and round(self.y) == round(ty):
+                self.is_flying = False # otherwise, enemy starts to fly again
                 self.is_return = False
 
         elif self.is_flying:
             # enemy is not in squad any more, flying along its trajectory
-            self.x += self.dx
-            self.y += self.dy
-
             tx,ty = self.trajectory[0]# target position
 
             rx = abs(self.x - tx) 
@@ -112,23 +108,26 @@ class Teki():
             if rx < 1 and ry < 1: # if arrived the destination
                 self.trajectory.pop(0)
 
-            if len(self.trajectory) == 0:
-                self.is_flying = False
-            else:
-                u,v = self.trajectory[0] # next destination
-                vx = (u - self.x)
-                vy = (v - self.y)
-                dist = (vx*vx + vy*vy)**.5
-                self.dx = vx / dist * 2
-                self.dy = vy / dist * 2
+            #if len(self.trajectory) == 0:                self.is_flying = False # maybe redundant 
+            #else:
+            u,v = self.trajectory[0] # next destination
+            vx = (u-self.x)
+            vy = (v-self.y)
+            dist = (vx*vx + vy*vy)**.5
+            dx = vx / dist * 2
+            dy = vy / dist * 2
+            
+            self.x += dx
+            self.y += dy
+
 
             if 100 < self.y < 104: # shooting the bullet
-                tekibullets.append(TekiBullet(self.x-16+pyxel.rndi(0,16) , self.y+16 , (self.dx * pyxel.rndf(1,2))/4))
+                tekibullets.append(TekiBullet(self.x-16+pyxel.rndi(0,16) , self.y+16 , (dx * pyxel.rndf(1,2))/4))
 
-            if APP_HEIGHT + 32 < self.y :
+            if APP_HEIGHT + 32 < self.y : # out of screen, so teleport it to the top of the screen
+                self.is_return = True
                 self.y = -16
                 flyable_enemy_count += 1
-                self.is_return = True
             
         else:
             # default behavior : enemy moves as the group
@@ -146,14 +145,14 @@ class Teki():
             for p1,p2 in zip(self.trajectory,self.trajectory[1:]):pyxel.line(p1[0], p1[1], p2[0], p2[1], 7)
 
     def start_core(self): # shared logic
-        self.trajectory = [[self.x+32*self.dx,self.y-32],[self.x+64*self.dx,self.y+10],[self.x-16+16*self.dx,self.y+20]]
         self.is_flying = True
         px=self.x+myship.x
         py=self.y+myship.y
-        self.trajectory += [  [px/4,py/4], [px/3,py/3], [px/2,py/2],  [px/3*2,py/3*2],[px/4*3,py/4*3],[myship.x,myship.y],[px/2*3,py/2*3],[self.x, APP_HEIGHT+64]] # last pos should be out of screen
+        self.trajectory = [[self.x+32*self.dx,self.y-32],[self.x+64*self.dx,self.y+10],[self.x-16+16*self.dx,self.y+20]]
+        self.trajectory +=[[px/4,py/4], [px/3,py/3], [px/2,py/2],  [px/3*2,py/3*2],[px/4*3,py/4*3],[myship.x,myship.y],[px/2*3,py/2*3],[self.x, APP_HEIGHT+64]] # last pos should be out of screen
         self.dy = -1
 
-    def check_hit(self,shipx,shipy) -> bool:
+    def check_hit(self,shipx,shipy) :
         return abs(shipx - self.x) < 12 and abs(shipy - self.y) < 12
 
 class Star():
