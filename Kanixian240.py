@@ -98,7 +98,6 @@ class Teki():
         self.trajectory = []
 
     def move(self,tx,ty):
-        
         vx=tx-self.x
         vy=ty-self.y
         dist = (vx*vx + vy*vy)**.5
@@ -113,25 +112,22 @@ class Teki():
         global flyable_enemy_count
         self.cnt += 1
 
-
         # returning, flying or moving as the group member
         if self.is_return: 
             # enemy is out of screen, returning to the target position aka default position
             tx=enemy_group.x + self.rposx
             ty=enemy_group.y + self.rposy
-            flag=self.move(tx,ty)
-            if flag: # if arrived the destination
+            if self.move(tx,ty): # if arrived the destination
                 self.is_flying = False # otherwise, enemy starts to fly again
                 self.is_return = False
 
         elif self.is_flying:
             # enemy is not in squad any more, flying along its trajectory
             tx,ty = self.trajectory[0]# target position
-            flag=self.move(tx,ty)
-            if flag: # if arrived the destination
+            if self.move(tx,ty): # if arrived the destination, next target
                 self.trajectory.pop(0)
 
-            if 100 < self.y < 104: # shooting the bullet
+            if 100 - stage_number < self.y < 104 + stage_number: # enemy bullet shoot range : extend it by stage number
                 tekibullets.append(TekiBullet(self.x-16+pyxel.rndi(0,16) , self.y+16 , (self.dx * pyxel.rndf(1,2))/4))
 
             if APP_HEIGHT + 32 < self.y : # out of screen, so teleport it to the top of the screen
@@ -257,7 +253,7 @@ class App():
         stage_number += 1
         flyable_enemy_count = stage_number + 1 # simultaneous fly increases
         self.counter = 0
-        enemy_group.list = [[Teki(x*10,i*20,i) for x in R] for i, R in enumerate( ((4,10),range(2,14,2),range(0,16,2), range(0,16,2) ))]
+        enemy_group.list = [[Teki(x*10,i*20,i)for x in R] for i, R in enumerate( [(4,10),range(2,14,2)]+[range(0,16,2)]*2 )]
 
     def update(self):
         global score
