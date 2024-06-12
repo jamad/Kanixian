@@ -36,24 +36,22 @@ class Message():# hit score on screen
     def draw(self):
         pyxel.text(self.x,self.y,self.mes,7)
 
-class Squad():   # 分隊
+class Squad():
     def __init__(self):
         self.x, self.y = 12, 16
         self.dx = 0.2
-        self.list = [[],[],[],[]]# enemy arrays
-        self.counter = 1
+        self.list = [[],[],[],[]] # enemy arrays
 
     def update(self):
         global flyable_enemy_count,score,message_list, stage_number
-        self.counter += 1
 
         self.x += self.dx # horizontal group move
         if not (12 <= self.x <= 72): self.dx *= -1 # reverse direction
 
         ### 移動開始させるかどうかの判定
         attack_interval=max(1,60-stage_number*4)# dynamic interval dependent on stage number
-        if self.counter % attack_interval == 0:
-            print(f'debug teki_flyable:{flyable_enemy_count} @ {self.counter}')
+        if pyxel.frame_count % attack_interval == 0:
+            print(f'debug teki_flyable:{flyable_enemy_count} @ {pyxel.frame_count}')
 
             if flyable_enemy_count:
                 flyable_enemy_count -= 1
@@ -64,7 +62,7 @@ class Squad():   # 分隊
 
                 # 50% randomness to fly from left or right
                 row[col].dx = (-1,1)[pyxel.rndi(0,1)]
-                row[col].start_core()
+                row[col].fly()
                 
         ### list中の敵が弾に当たったかの判定と削除
         for row in reversed(range(4)):
@@ -151,7 +149,7 @@ class Teki():
             pyxel.text(self.x,self.y+16,f'{int(self.x)},{int(self.y)}',7)
             for p1,p2 in zip(self.trajectory,self.trajectory[1:]):pyxel.line(p1[0], p1[1], p2[0], p2[1], 7)
 
-    def start_core(self): # shared logic
+    def fly(self): # shared logic
         self.is_flying = True
         px=self.x+myship.x
         py=self.y+myship.y
