@@ -2,13 +2,15 @@ import pyxel
 
 debugdisp=0
 
-APP_WIDTH = APP_HEIGHT = 240
+APP_WIDTH = 480
+APP_HEIGHT = 640
 CHAR_SIZE=16 
 
-message_list = []
+# global variable because it is used in Squad as well as another Class
 score = 0
-stage_number=0 # global variable because it is used in Squad as well as App
-
+flyable_enemy_count=0
+stage_number=0 
+message_list = []
 
 class Star():
     def __init__(self):
@@ -218,7 +220,7 @@ myship = Myship()
 
 class App():
     def __init__(self):
-        pyxel.init(APP_WIDTH,APP_HEIGHT,title="Kanixian MOD",fps=60,display_scale=2) 
+        pyxel.init(APP_WIDTH,APP_HEIGHT,title="Kanixian MOD",fps=120,display_scale=1) 
         pyxel.load("kani.pyxres")
         try:
             with open("hiscore.txt","r") as f:self.hiscore = int(f.readline())
@@ -295,12 +297,12 @@ class App():
         [bullet_list.remove(bullet)for bullet in bullet_list if bullet.y < -10]
         [tekibullets.remove(bullet) for bullet in tekibullets if bullet.y > APP_HEIGHT + 10]
 
-        [message_list.remove(mes)for mes in message_list if mes.cnt < 0]    ### メッセージの生存確認
-        myship.update()                                             ### 自機の更新 # position by direction
-        [bullet.update() for bullet in bullet_list+tekibullets]         ### 弾の更新
-        enemy_group.update()                                              ### 分隊の更新
-        [teki.update() for tekis in enemy_group.list for teki in tekis]   ### 敵の更新
-        [mes.update() for mes in message_list]                          ### メッセージの更新            
+        [message_list.remove(mes)for mes in message_list if mes.cnt < 0]    # メッセージの生存確認
+        myship.update()                                                     # 自機の更新 # position by direction
+        [bullet.update() for bullet in bullet_list+tekibullets]             # 弾の更新
+        enemy_group.update()                                                # 分隊の更新
+        [teki.update() for tekis in enemy_group.list for teki in tekis]     # 敵の更新
+        [mes.update() for mes in message_list]                              # メッセージの更新            
 
     def draw(self):
         global stage_number
