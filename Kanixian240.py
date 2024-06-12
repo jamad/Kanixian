@@ -22,7 +22,7 @@ class Star():
         self.y += self.speed* ( stage_number+1)* 0.2 # scroll
 
     def draw(self):
-        if pyxel.rndi(1,3) <2 :#blinking. showing at 33%
+        if pyxel.rndi(1,self.color-2) <3 :#blinking. showing at 33%
             pyxel.pset(self.x,self.y,self.color)
 
 class Message():# hit score on screen 
@@ -105,8 +105,12 @@ class Teki():
             tx=enemy_group.x + self.rposx
             ty=enemy_group.y + self.rposy
             
-            self.x = (self.x + tx) / 2
-            self.y = (self.y + ty) / 2
+            vx=tx-self.x
+            vy=ty-self.y
+            
+            speed=0.15
+            self.x += vx*speed
+            self.y += vy*speed
 
             if abs(self.x-tx)<1 and abs(self.y-ty)<1:
                 self.is_flying = False # otherwise, enemy starts to fly again
