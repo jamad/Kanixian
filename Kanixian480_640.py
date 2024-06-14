@@ -15,6 +15,7 @@ class Star:
 
     def update(self):
         self.y += self.speed* ( App.stage_number+1)* 0.2 # scroll
+        self.y %= APP_HEIGHT
 
     def draw(self):
         if pyxel.rndi(1,self.color-2) <3 :#blinking. showing at 33%
@@ -181,7 +182,7 @@ class TekiBullet(BulletBase):
         super().__init__(x, y, dx=dx, dy=1, h=8, c=7)
     
     def check_hit(self, shipx, shipy):
-        return self.x - 14 < shipx < self.x - 2 and self.y - 14 < shipy < self.y - 2
+        return self.x - CHAR_SIZE + 2 < shipx < self.x - 2 and self.y - CHAR_SIZE + 2 < shipy < self.y - 2
 
 
 class Myship:
@@ -254,9 +255,6 @@ class App:
     def update(self):
         for star in self.stars:
             star.update()
-            if star.y > APP_HEIGHT:
-                self.stars.remove(star)
-                self.stars.append(Star())
 
         ### ゲーム開始の判定
         if self.is_gaming == False:
