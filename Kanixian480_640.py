@@ -6,8 +6,6 @@ APP_WIDTH = 480
 APP_HEIGHT = 640
 CHAR_SIZE=16 
 
-
-
 class Star:
     def __init__(self):
         self.x = pyxel.rndi(0,APP_WIDTH )
@@ -67,15 +65,14 @@ class Squad:
             for teki in self.list[row]:
                 for bullet in App.bullet_list:
                     if bullet.check_hit(teki.x,teki.y):
-                        ds =teki.is_flying and (30,150)[row==0]or 10
-                        App.score += ds
-                        App.message_list.append(Message(teki.x+4+2*(ds==150),teki.y+6,f"{ds}"))
-                        self.list[row].remove(teki)
-                        App.bullet_list.remove(bullet)
-                        pyxel.play(1,1)
+                        App.flyable_enemy_count+=teki.is_flying                                     # another enemy can fly 
+                        ds =teki.is_flying and (30,150)[row==0]or 10                                # set delta of score
+                        App.score += ds                                                             # increase score
+                        App.message_list.append(Message(teki.x+4+2*(ds==150),teki.y+6,f"{ds}"))     # add score text
+                        self.list[row].remove(teki)                                                 # remove enemy
+                        App.bullet_list.remove(bullet)                                              # remove bullet
+                        pyxel.play(1,1)                                                             # play sound effect
 
-                        if teki.is_flying:
-                            App.flyable_enemy_count+=1 # another enemy can fly 
 
 enemy_group = Squad() 
 
@@ -159,35 +156,35 @@ class Teki:
         return abs(shipx - self.x) < 12 and abs(shipy - self.y) < 12
 
 
-class Bullet:# my bullet
-    def __init__(self, x, y) -> None:
-        self.x = x
-        self.y = y
-
-    def update(self):
-        self.y -= 3 # changed from 4 to 3
-
-    def draw(self):
-        pyxel.rect(self.x,self.y,2,4,10)
-        
-    def check_hit(self,tekix,tekiy):
-        return self.x-CHAR_SIZE < tekix < self.x and self.y-CHAR_SIZE < tekiy < self.y
-
-class TekiBullet:
-    def __init__(self,x,y,dx) -> None:
-        self.x = x
-        self.y = y
-        self.dx = dx # horizontal velocity
+class BulletBase:
+    def __init__(self, x, y, dx=0, dy=0, w=2, h=4, c=10) -> None:
+        self.x,self.y  = x, y
+        self.dx , self.dy = dx, dy
+        self.w = w
+        self.h = h
+        self.c = c
     
     def update(self):
         self.x += self.dx
-        self.y += 1
+        self.y += self.dy
     
     def draw(self):
-        pyxel.rect(self.x,self.y,2,8,7)
+        pyxel.rect(self.x, self.y, self.w, self.h, self.c)
 
-    def check_hit(self,shipx,shipy):
-        return self.x-14 < shipx < self.x-2 and self.y-14 < shipy < self.y-2
+class Bullet(BulletBase):  # my bullet
+    def __init__(self, x, y) -> None:
+        super().__init__(x, y, dy=-3, h=4, c=10)
+        
+    def check_hit(self, tekix, tekiy):
+        return self.x - CHAR_SIZE < tekix < self.x and self.y - CHAR_SIZE < tekiy < self.y
+
+class TekiBullet(BulletBase):
+    def __init__(self, x, y, dx) -> None:
+        super().__init__(x, y, dx=dx, dy=1, h=8, c=7)
+    
+    def check_hit(self, shipx, shipy):
+        return self.x - 14 < shipx < self.x - 2 and self.y - 14 < shipy < self.y - 2
+
 
 class Myship:
     def __init__(self) -> None:
@@ -248,10 +245,8 @@ class App:
         myship.__init__() # need this with vertical freedom, otherwise instant gameover 
 
     def init_stage(self):
-        
-        bullet_list = []# need to empty otherwise, instant death could happen
-        tekibullets = []# need to empty otherwise, instant death could happen
-    
+        App.bullet_list = []# need to empty otherwise, instant death could happen
+        App.tekibullets = []# need to empty otherwise, instant death could happen
         App.stage_number += 1
         App.flyable_enemy_count = App.stage_number + 1 # simultaneous fly increases
         self.counter = 0
@@ -278,7 +273,7 @@ class App:
             self.init_stage()
             return
             
-        ### ゲームオーバーの判定
+        ### ゲームオーバーの判定  enemy or enemy bullet hit the player
         obstacles=App.tekibullets+sum(enemy_group.list,[])
         for obs in obstacles:
             if obs.check_hit(myship.x,myship.y):
