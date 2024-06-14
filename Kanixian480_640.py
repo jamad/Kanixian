@@ -10,7 +10,6 @@ CHAR_SIZE=16
 score = 0
 flyable_enemy_count=0
 stage_number=0 
-message_list = []
 
 class Star:
     def __init__(self):
@@ -76,7 +75,7 @@ class Squad:
                     if bullet.check_hit(teki.x,teki.y):
                         ds =teki.is_flying and (30,150)[row==0]or 10
                         score += ds
-                        message_list.append(Message(teki.x+4+2*(ds==150),teki.y+6,f"{ds}"))
+                        App.message_list.append(Message(teki.x+4+2*(ds==150),teki.y+6,f"{ds}"))
                         self.list[row].remove(teki)
                         bullet_list.remove(bullet)
                         pyxel.play(1,1)
@@ -223,6 +222,8 @@ myship = Myship()
 
 
 class App:
+    message_list = []# moved the variable here instead of global variable
+    
     def __init__(self):
         pyxel.init(APP_WIDTH,APP_HEIGHT,title="Kanixian MOD",fps=120,display_scale=1) 
         pyxel.load("kani.pyxres")
@@ -302,12 +303,12 @@ class App:
         [bullet_list.remove(bullet)for bullet in bullet_list if bullet.y < -10]
         [tekibullets.remove(bullet) for bullet in tekibullets if bullet.y > APP_HEIGHT + 10]
 
-        [message_list.remove(mes)for mes in message_list if mes.cnt < 0]    # メッセージの生存確認
+        [App.message_list.remove(mes)for mes in App.message_list if mes.cnt < 0]    # メッセージの生存確認
         myship.update()                                                     # 自機の更新 # position by direction
         [bullet.update() for bullet in bullet_list+tekibullets]             # 弾の更新
         enemy_group.update()                                                # 分隊の更新
         [teki.update() for tekis in enemy_group.list for teki in tekis]     # 敵の更新
-        [mes.update() for mes in message_list]                              # メッセージの更新            
+        [mes.update() for mes in App.message_list]                              # メッセージの更新            
 
     def draw(self):
         global stage_number
@@ -322,7 +323,7 @@ class App:
             [teki.draw() for tekis in enemy_group.list for teki in tekis]   # 敵の描画
             [bullet.draw() for bullet in bullet_list+tekibullets]           # 弾の描画
             myship.draw()                                                   # 自機の描画
-            [mes.draw() for mes in message_list]                            # メッセージの描画
+            [mes.draw() for mes in App.message_list]                            # メッセージの描画
             pyxel.text( APP_WIDTH//8*7,10,   f"{score}" ,7)                 # score info
             pyxel.text(10,10,f"STAGE : {stage_number}",7)                   # stage info
         else:
