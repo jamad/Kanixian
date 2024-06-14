@@ -16,8 +16,7 @@ class Star:
         self.speed =  self.color/4 -1
 
     def update(self):
-        global stage_number
-        self.y += self.speed* ( stage_number+1)* 0.2 # scroll
+        self.y += self.speed* ( App.stage_number+1)* 0.2 # scroll
 
     def draw(self):
         if pyxel.rndi(1,self.color-2) <3 :#blinking. showing at 33%
@@ -42,8 +41,6 @@ class Squad:
         self.list = [[],[],[],[]] # enemy arrays
 
     def update(self):
-        global flyable_enemy_count,score,message_list, stage_number
-
         self.x += self.dx # horizontal group move
 
         theta= pyxel.frame_count/180*math.pi
@@ -52,13 +49,13 @@ class Squad:
         if not (CHAR_SIZE <= self.x <= CHAR_SIZE*9): self.dx *= -1 # reverse direction
 
         ### 移動開始させるかどうかの判定
-        attack_interval=max(1,60-stage_number*4)# dynamic interval dependent on stage number
+        attack_interval=max(1,60-App.stage_number*4)# dynamic interval dependent on stage number
 
         if pyxel.frame_count % attack_interval == 0:
-            print(f'debug teki_flyable:{flyable_enemy_count} @ {pyxel.frame_count}')
+            print(f'debug teki_flyable:{App.flyable_enemy_count} @ {pyxel.frame_count}')
 
-            if flyable_enemy_count:
-                flyable_enemy_count -= 1
+            if App.flyable_enemy_count:
+                App.flyable_enemy_count -= 1
                 enemy_alive=[enemy for row in enemy_group.list for enemy in row]
                 chosen=enemy_alive[pyxel.rndi(0,len(enemy_alive)-1)] # choose at random
                 chosen.is_flying = True
@@ -68,17 +65,17 @@ class Squad:
         ### list中の敵が弾に当たったかの判定と削除
         for row in reversed(range(len(enemy_group.list))):
             for teki in self.list[row]:
-                for bullet in bullet_list:
+                for bullet in App.bullet_list:
                     if bullet.check_hit(teki.x,teki.y):
                         ds =teki.is_flying and (30,150)[row==0]or 10
-                        score += ds
+                        App.score += ds
                         App.message_list.append(Message(teki.x+4+2*(ds==150),teki.y+6,f"{ds}"))
                         self.list[row].remove(teki)
-                        bullet_list.remove(bullet)
+                        App.bullet_list.remove(bullet)
                         pyxel.play(1,1)
 
                         if teki.is_flying:
-                            flyable_enemy_count+=1 # another enemy can fly 
+                            App.flyable_enemy_count+=1 # another enemy can fly 
 
 enemy_group = Squad() 
 
@@ -108,7 +105,6 @@ class Teki:
         return abs(vx)<1 and abs(vy)<1
 
     def update(self):
-        global flyable_enemy_count
         self.cnt += 1
 
         # returning, flying or moving as the group member
@@ -126,14 +122,14 @@ class Teki:
             if self.move(tx,ty): # if arrived the destination, next target
                 self.trajectory.pop(0)
 
-            if 100 - stage_number < self.y < 104 + stage_number: # enemy bullet shoot range : extend it by stage number
-                tekibullets.append(TekiBullet(self.x-16+pyxel.rndi(0,16) , self.y+16 , (self.dx * pyxel.rndf(1,2))/4))
+            if 100 - App.stage_number < self.y < 104 + App.stage_number: # enemy bullet shoot range : extend it by stage number
+                App.tekibullets.append(TekiBullet(self.x-16+pyxel.rndi(0,16) , self.y+16 , (self.dx * pyxel.rndf(1,2))/4))
 
             if APP_HEIGHT + 32 < self.y : # out of screen, so teleport it to the top of the screen
                 self.is_return = True
                 self.y = -CHAR_SIZE*2
                 self.x = APP_WIDTH / 2
-                flyable_enemy_count += 1
+                App.flyable_enemy_count += 1
             
         else:
             # default behavior : enemy moves as the group
@@ -224,6 +220,8 @@ class App:
     flyable_enemy_count=0
     stage_number=0 
     message_list = []# moved the variable here instead of global variable
+    bullet_list = []
+    tekibullets = []
     
     def __init__(self):
         pyxel.init(APP_WIDTH,APP_HEIGHT,title="Kanixian MOD",fps=120,display_scale=1) 
@@ -239,11 +237,10 @@ class App:
         pyxel.run(self.update,self.draw)
 
     def init_game(self):
-        global stage_number
-        stage_number=0
+        App.stage_number=0
 
         if App.score > self.hiscore:
-            self.hiscore = score
+            self.hiscore = App.score
             with open("hiscore.txt","w") as f:
                 f.write(str(self.hiscore))
         self.is_gaming = False
@@ -251,20 +248,17 @@ class App:
         myship.__init__() # need this with vertical freedom, otherwise instant gameover 
 
     def init_stage(self):
-        global flyable_enemy_count,bullet_list,tekibullets,score,stage_number
         
         bullet_list = []# need to empty otherwise, instant death could happen
         tekibullets = []# need to empty otherwise, instant death could happen
     
-        stage_number += 1
-        flyable_enemy_count = stage_number + 1 # simultaneous fly increases
+        App.stage_number += 1
+        App.flyable_enemy_count = App.stage_number + 1 # simultaneous fly increases
         self.counter = 0
         MAX_COL_NUM=16*2
         enemy_group.list = [[Teki(x*10,i*20,i)for x in R] for i, R in enumerate( [(4+3*2,10+5*2),range(2,MAX_COL_NUM-2,2)]+[range(0,MAX_COL_NUM,2)]*5 )]
 
     def update(self):
-        global score
-
         for star in self.stars:
             star.update()
             if star.y > APP_HEIGHT:
@@ -285,7 +279,7 @@ class App:
             return
             
         ### ゲームオーバーの判定
-        obstacles=tekibullets+sum(enemy_group.list,[])
+        obstacles=App.tekibullets+sum(enemy_group.list,[])
         for obs in obstacles:
             if obs.check_hit(myship.x,myship.y):
                 pyxel.play(2,2)
@@ -297,23 +291,21 @@ class App:
 
         ### 弾発射の判定
         if pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_A) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_B):
-            bullet_list.append(Bullet(myship.x + 7,myship.y))
+            App.bullet_list.append(Bullet(myship.x + 7,myship.y))
             pyxel.play(0,0)
 
         ### 弾の生存確認
-        [bullet_list.remove(bullet)for bullet in bullet_list if bullet.y < -10]
-        [tekibullets.remove(bullet) for bullet in tekibullets if bullet.y > APP_HEIGHT + 10]
+        [App.bullet_list.remove(bullet)for bullet in App.bullet_list if bullet.y < -10]
+        [App.tekibullets.remove(bullet) for bullet in App.tekibullets if bullet.y > APP_HEIGHT + 10]
 
         [App.message_list.remove(mes)for mes in App.message_list if mes.cnt < 0]    # メッセージの生存確認
         myship.update()                                                     # 自機の更新 # position by direction
-        [bullet.update() for bullet in bullet_list+tekibullets]             # 弾の更新
+        [bullet.update() for bullet in App.bullet_list+App.tekibullets]             # 弾の更新
         enemy_group.update()                                                # 分隊の更新
         [teki.update() for tekis in enemy_group.list for teki in tekis]     # 敵の更新
         [mes.update() for mes in App.message_list]                              # メッセージの更新            
 
     def draw(self):
-        global stage_number
-
         pyxel.cls(0)
 
         # background
@@ -322,11 +314,11 @@ class App:
         # core contents
         if self.is_gaming:            
             [teki.draw() for tekis in enemy_group.list for teki in tekis]   # 敵の描画
-            [bullet.draw() for bullet in bullet_list+tekibullets]           # 弾の描画
+            [bullet.draw() for bullet in App.bullet_list+App.tekibullets]           # 弾の描画
             myship.draw()                                                   # 自機の描画
             [mes.draw() for mes in App.message_list]                            # メッセージの描画
-            pyxel.text( APP_WIDTH//8*7,10,   f"{score}" ,7)                 # score info
-            pyxel.text(10,10,f"STAGE : {stage_number}",7)                   # stage info
+            pyxel.text( APP_WIDTH//8*7,10,   f"{App.score}" ,7)                 # score info
+            pyxel.text(10,10,f"STAGE : {App.stage_number}",7)                   # stage info
         else:
             pyxel.blt(APP_WIDTH//4,APP_HEIGHT//2-50,2,0,32,256,48,0)                                   # title image
             pyxel.text(82+APP_WIDTH//4,APP_HEIGHT//2+50,"Push BUTTON to Start",pyxel.frame_count%30)    # push to start message
