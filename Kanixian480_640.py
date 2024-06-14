@@ -6,10 +6,7 @@ APP_WIDTH = 480
 APP_HEIGHT = 640
 CHAR_SIZE=16 
 
-# global variable because it is used in Squad as well as another Class
-score = 0
-flyable_enemy_count=0
-stage_number=0 
+
 
 class Star:
     def __init__(self):
@@ -222,6 +219,10 @@ myship = Myship()
 
 
 class App:
+    # moved global variable here by using App.variablename 
+    score = 0
+    flyable_enemy_count=0
+    stage_number=0 
     message_list = []# moved the variable here instead of global variable
     
     def __init__(self):
@@ -241,7 +242,7 @@ class App:
         global stage_number
         stage_number=0
 
-        if score > self.hiscore:
+        if App.score > self.hiscore:
             self.hiscore = score
             with open("hiscore.txt","w") as f:
                 f.write(str(self.hiscore))
