@@ -12,7 +12,7 @@ flyable_enemy_count=0
 stage_number=0 
 message_list = []
 
-class Star():
+class Star:
     def __init__(self):
         self.x = pyxel.rndi(0,APP_WIDTH )
         self.y = pyxel.rndi(0,APP_HEIGHT)
@@ -27,7 +27,7 @@ class Star():
         if pyxel.rndi(1,self.color-2) <3 :#blinking. showing at 33%
             pyxel.pset(self.x,self.y,self.color)
 
-class Message():# hit score on screen 
+class Message:# hit score on screen 
     def __init__(self,x,y,message) -> None:
         self.x, self.y = x, y
         self.cnt = 30 # timer 
@@ -38,7 +38,7 @@ class Message():# hit score on screen
     def draw(self):
         pyxel.text(self.x,self.y,self.mes,7)
 
-class Squad():
+class Squad:
     def __init__(self):
         self.x, self.y = CHAR_SIZE*6, CHAR_SIZE*4
         self.dx = 0.2
@@ -86,7 +86,7 @@ class Squad():
 
 enemy_group = Squad() 
 
-class Teki():
+class Teki:
     def __init__(self,rx,ry,num): # rx,ry: relative position in group, num: row id from top
         self.rposx = rx
         self.rposy = ry
@@ -167,7 +167,7 @@ class Teki():
         return abs(shipx - self.x) < 12 and abs(shipy - self.y) < 12
 
 
-class Bullet():# my bullet
+class Bullet:# my bullet
     def __init__(self, x, y) -> None:
         self.x = x
         self.y = y
@@ -181,7 +181,7 @@ class Bullet():# my bullet
     def check_hit(self,tekix,tekiy):
         return self.x-CHAR_SIZE < tekix < self.x and self.y-CHAR_SIZE < tekiy < self.y
 
-class TekiBullet():
+class TekiBullet:
     def __init__(self,x,y,dx) -> None:
         self.x = x
         self.y = y
@@ -197,7 +197,7 @@ class TekiBullet():
     def check_hit(self,shipx,shipy):
         return self.x-14 < shipx < self.x-2 and self.y-14 < shipy < self.y-2
 
-class Myship():
+class Myship:
     def __init__(self) -> None:
         self.x = (APP_WIDTH-CHAR_SIZE)/2 # center 
         self.y = APP_HEIGHT - CHAR_SIZE*4
@@ -222,7 +222,7 @@ class Myship():
 myship = Myship()
 
 
-class App():
+class App:
     def __init__(self):
         pyxel.init(APP_WIDTH,APP_HEIGHT,title="Kanixian MOD",fps=120,display_scale=1) 
         pyxel.load("kani.pyxres")
