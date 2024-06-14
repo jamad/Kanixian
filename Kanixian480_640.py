@@ -226,7 +226,6 @@ class App:
             with open("hiscore.txt","r") as f:self.hiscore = int(f.readline())
         except:
             self.hiscore=0
-            with open("hiscore.txt","w") as f:f.write(f'{self.hiscore}')
 
         self.stars=[Star()for i in range(60)]#background stars
         self.init_game()
@@ -237,8 +236,7 @@ class App:
 
         if App.score > self.hiscore:
             self.hiscore = App.score
-            with open("hiscore.txt","w") as f:
-                f.write(str(self.hiscore))
+            with open("hiscore.txt","w") as f:f.write(f'{self.hiscore}')
         self.is_gaming = False
 
         myship.__init__() # need this with vertical freedom, otherwise instant gameover 
