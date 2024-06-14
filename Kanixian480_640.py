@@ -160,16 +160,14 @@ class BulletBase:
     def __init__(self, x, y, dx=0, dy=0, w=2, h=4, c=10) -> None:
         self.x,self.y  = x, y
         self.dx , self.dy = dx, dy
-        self.w = w
-        self.h = h
-        self.c = c
+        self.whc =(w,h,c) # width , height, color
     
     def update(self):
         self.x += self.dx
         self.y += self.dy
     
     def draw(self):
-        pyxel.rect(self.x, self.y, self.w, self.h, self.c)
+        pyxel.rect(self.x, self.y, *self.whc)
 
 class Bullet(BulletBase):  # my bullet
     def __init__(self, x, y) -> None:
