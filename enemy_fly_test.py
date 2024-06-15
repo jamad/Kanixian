@@ -116,8 +116,6 @@ class App:
     score = 0
     stage_number = 0
     message_list = []
-    bullet_list = []
-    tekibullets = []
 
     def __init__(self):
         pyxel.init(APP_WIDTH, APP_HEIGHT, title="Kanixian MOD", fps=120, display_scale=1)
@@ -125,8 +123,6 @@ class App:
         pyxel.run(self.update, self.draw)
 
     def init_stage(self):
-        App.bullet_list = []
-        App.tekibullets = []
         App.stage_number += 1
         MAX_COL_NUM = 16 * 2
         enemy_group.list = [[Teki(x * 10, i * 20, i) for x in R] for i, R in enumerate([(4 + 3 * 2, 10 + 5 * 2), range(2, MAX_COL_NUM - 2, 2)] + [range(0, MAX_COL_NUM, 2)] * 5)]
@@ -135,12 +131,7 @@ class App:
         if sum(map(len, enemy_group.list)) == 0:
             self.init_stage()
             return
-
-        App.bullet_list = [bullet for bullet in App.bullet_list if bullet.y >= -10]
-        App.tekibullets = [bullet for bullet in App.tekibullets if bullet.y <= APP_HEIGHT + 10]
-
-        for bullet in App.bullet_list + App.tekibullets:
-            bullet.update()
+        
         enemy_group.update()
         for tekis in enemy_group.list:
             for teki in tekis:
@@ -151,7 +142,5 @@ class App:
         for tekis in enemy_group.list:
             for teki in tekis:
                 teki.draw()
-        for bullet in App.bullet_list + App.tekibullets:
-            bullet.draw()
 
 App()
