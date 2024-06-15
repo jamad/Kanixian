@@ -73,24 +73,15 @@ class App:
     def __init__(self):
         pyxel.init(APP_WIDTH, APP_HEIGHT, title="Kanixian MOD", fps=120)
         pyxel.load("kani.pyxres")
+        enemy_group.list = [[Teki(x * 10, i * 20, i) for x in R] for i, R in enumerate([(10, 20), range(2, 30, 2)] + [range(0, 32, 2)] * 5)]
         pyxel.run(self.update, self.draw)
 
-    def init_stage(self):
-        App.stage_number += 1
-        enemy_group.list = [[Teki(x * 10, i * 20, i) for x in R] for i, R in enumerate([(10, 20), range(2, 30, 2)] + [range(0, 32, 2)] * 5)]
-
     def update(self):
-        if not sum(map(len, enemy_group.list)):
-            self.init_stage()
         enemy_group.update()
-        for row in enemy_group.list:
-            for teki in row:
-                teki.update()
-
+        [teki.update()for row in enemy_group.list for teki in row]
+                
     def draw(self):
         pyxel.cls(0)
-        for row in enemy_group.list:
-            for teki in row:
-                teki.draw()
-
+        [teki.draw()for row in enemy_group.list for teki in row]
+                
 App()
