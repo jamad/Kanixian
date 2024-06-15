@@ -34,24 +34,27 @@ class Squad:
 
 class Enemy:
     def __init__(self, rx, ry, num, squad_x,squad_y):
-        self.rposx, self.rposy = rx, ry
+        self.home_x, self.home_y = rx, ry
         self.num = min(3, num)
         self.anim_pattern = self.is_flying = self.is_return = 0
-        self.x, self.y = squad_x + self.rposx, squad_y + self.rposy
+        self.x, self.y = squad_x + self.home_x, squad_y + self.home_y
         self.dx, self.dy, self.trajectory = 0, 0, []
 
-    def move(self, tx, ty):
-        vx, vy = tx - self.x, ty - self.y
-        dist = math.sqrt(vx * vx + vy * vy)
-        self.dx, self.dy = (vx, vy) if dist < 1 else (vx / dist * 2, vy / dist * 2)
-        self.x += self.dx
-        self.y += self.dy
-        return dist < 1
+    def move(self, tx, ty): # goes to (tx,ty)
+        vx, vy = tx - self.x, ty - self.y                                               # vector 
+        dist = math.sqrt(vx * vx + vy * vy)                                             # distance
+        arrived= dist < 1                                                               # true if arrived at destination
+        self.dx, self.dy = (vx, vy) if arrived else (2*vx /dist, 2*vy/dist)             # delta unit vector x2
+        self.x += self.dx                                                               # posx update
+        self.y += self.dy                                                               # posy update
+        return arrived                                                                 
 
     def update(self,squad_x,squad_y):
         self.anim_pattern += 1 # pattern animation
+        x=squad_x + self.home_x
+        y=squad_y + self.home_y
         if self.is_return:
-            if self.move(squad_x + self.rposx, squad_y + self.rposy): # move and if it reached the destination
+            if self.move(x, y): # move and if it reached the destination
                 self.is_flying = self.is_return = 0
         elif self.is_flying:
             if self.trajectory and self.move(*self.trajectory[-1]):                       # if arrived at destination, next destination
@@ -59,7 +62,7 @@ class Enemy:
             if self.y > APP_HEIGHT + 32:
                 self.is_return, self.y, self.x = True, -CHAR_SIZE * 2, APP_WIDTH / 2      # teleporting
         else:
-            self.x, self.y = squad_x + self.rposx, squad_y + self.rposy
+            self.x, self.y = x, y
 
     def draw(self):
         u = 2 + (0 < self.dx) if self.is_flying else (self.anim_pattern // 30) % 2
