@@ -16,6 +16,6 @@
 |wiki|https://github.com/jamad/Kanixian/wiki|
 |alt+3 can capture the last 10seconds as gif and the file is found on Desktop| ![pyxel-20240612-000647](https://github.com/jamad/Kanixian/assets/949913/1e7b8aab-01e6-4573-89fe-6c8ecf2a3e47)|
 |`https://github.com/jamad/Kanixian/blob/main/Kanixian240.py` can become playable by the following URL |https://kitao.github.io/pyxel/wasm/launcher/?run=jamad.Kanixian.Kanixian240|
-|`https://github.com/jamad/Kanixian/blob/main/Kanixian480_640.py` got the new filename, so tried　`https://kitao.github.io/pyxel/wasm/launcher/?run=jamad.Kanixian.Kanixian480_640.py` but got an error<br> https://kitao.github.io/pyxel/wasm/launcher/?run=jamad.Kanixian.Kanixian480_640 was the correct URL (.py was redundant)<br> later, updated .py but wasm data shows older version (no idea why)|![pyxel-20240612-175422](https://github.com/jamad/Kanixian/assets/949913/46d4f5a3-3da7-4dcd-9944-5236104419c5)|
+|renamed the file as `https://github.com/jamad/Kanixian/blob/main/Kanixian480_640.py` <br><br> then tried　`https://kitao.github.io/pyxel/wasm/launcher/?run=jamad.Kanixian.Kanixian480_640.py` but got an error <br><br> https://kitao.github.io/pyxel/wasm/launcher/?run=jamad.Kanixian.Kanixian480_640 <br> was the correct URL after all (.py was redundant)<br> later, updated .py but wasm data shows older version (no idea why)|![pyxel-20240612-175422](https://github.com/jamad/Kanixian/assets/949913/46d4f5a3-3da7-4dcd-9944-5236104419c5)|
 |-|-|
 
