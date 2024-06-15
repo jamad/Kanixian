@@ -5,9 +5,9 @@ CHAR_SIZE = 16
 
 class Squad:
     def __init__(self):
+        self.dx = 0.2                                                           # horizontal move speed
         self.x, self.y = CHAR_SIZE * 6, CHAR_SIZE * 4
         self.list = [[Enemy(x*10, i*20, i, self.x, self.y) for x in R] for i, R in enumerate([(10, 20), range(2, 30, 2)] + [range(0, 32, 2)]*5)]
-        self.dx = 0.2                                                           # horizontal move speed
 
     def update(self):
         self.x += self.dx                                                       # horizontal move
@@ -19,7 +19,13 @@ class Squad:
             chosen = enemies[pyxel.rndi(0, len(enemies) - 1)]
             chosen.is_flying = True
             chosen.dx = (-1, 1)[pyxel.rndi(0, 1)]                               # random direction
-            chosen.fly()
+            px,py=chosen.x + 50, chosen.y + 1000
+            chosen.trajectory =  [
+                [
+                (1 - t) ** 3 * chosen.x + 3 * (1 - t) ** 2 * t * (px / 2) + 3 * (1 - t) * t ** 2 * px + t ** 3 * (APP_WIDTH / 2),
+                (1 - t) ** 3 * chosen.y + 3 * (1 - t) ** 2 * t * (py / 2) + 3 * (1 - t) * t ** 2 * py + t ** 3 * (APP_HEIGHT + 64)
+                ] for i in range(9,-1,-1) for t in [(i + 1) / 11]]
+            chosen.dy = -1
 
         [enemy.update(self.x,self.y)for row in self.list for enemy in row]
     
@@ -30,7 +36,7 @@ class Enemy:
     def __init__(self, rx, ry, num, squad_x,squad_y):
         self.rposx, self.rposy = rx, ry
         self.num = min(3, num)
-        self.cnt = self.is_flying = self.is_return = 0
+        self.anim_pattern = self.is_flying = self.is_return = 0
         self.x, self.y = squad_x + self.rposx, squad_y + self.rposy
         self.dx, self.dy, self.trajectory = 0, 0, []
 
@@ -43,32 +49,21 @@ class Enemy:
         return dist < 1
 
     def update(self,squad_x,squad_y):
-        self.cnt += 1
+        self.anim_pattern += 1 # pattern animation
         if self.is_return:
             if self.move(squad_x + self.rposx, squad_y + self.rposy): # move and if it reached the destination
                 self.is_flying = self.is_return = 0
         elif self.is_flying:
             if self.trajectory and self.move(*self.trajectory[-1]):                       # if arrived at destination, next destination
-                self.trajectory.pop()
+                self.trajectory.pop()   # trajectory is changed as stack
             if self.y > APP_HEIGHT + 32:
                 self.is_return, self.y, self.x = True, -CHAR_SIZE * 2, APP_WIDTH / 2      # teleporting
         else:
             self.x, self.y = squad_x + self.rposx, squad_y + self.rposy
 
     def draw(self):
-        u = 2 + (0 < self.dx) if self.is_flying else (self.cnt // 30) % 2
+        u = 2 + (0 < self.dx) if self.is_flying else (self.anim_pattern // 30) % 2
         pyxel.blt(self.x, self.y, 0, u * CHAR_SIZE, (self.num + 3) * CHAR_SIZE, CHAR_SIZE, CHAR_SIZE, 0)
-
-    def fly(self):
-        self.is_flying = True
-        px,py=self.x + 50, self.y + 1000
-        self.trajectory =  [
-            [
-            (1 - t) ** 3 * self.x + 3 * (1 - t) ** 2 * t * (px / 2) + 3 * (1 - t) * t ** 2 * px + t ** 3 * (APP_WIDTH / 2),
-            (1 - t) ** 3 * self.y + 3 * (1 - t) ** 2 * t * (py / 2) + 3 * (1 - t) * t ** 2 * py + t ** 3 * (APP_HEIGHT + 64)
-            ] for i in range(10) for t in [(i + 1) / 11]]
-        self.trajectory.reverse()
-        self.dy = -1
 
 class App:
     def __init__(self):
