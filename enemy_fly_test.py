@@ -9,6 +9,9 @@ class Squad:
         self.x, self.y = CHAR_SIZE * 6, CHAR_SIZE * 4
         self.list = [[Enemy(x*10, i*20, i, self.x, self.y) for x in R] for i, R in enumerate([(10, 20), range(2, 30, 2)] + [range(0, 32, 2)]*5)]
 
+        self.playerx=APP_WIDTH/2
+        self.playery=APP_HEIGHT/2
+
     def update(self):
         self.x += self.dx                                                       # horizontal move
         if not (CHAR_SIZE <= self.x <= CHAR_SIZE * 9):self.dx *= -1             # horizontal direction change
@@ -19,7 +22,7 @@ class Squad:
             chosen = enemies[pyxel.rndi(0, len(enemies) - 1)]
             chosen.is_flying = True
             chosen.dx = (-1, 1)[pyxel.rndi(0, 1)]                               # random direction
-            px,py=chosen.x + 50, chosen.y + 1000
+            px,py=chosen.x + self.playerx, chosen.y + self.playery
             chosen.trajectory =  [
                 [
                 (1 - t) ** 3 * chosen.x + 3 * (1 - t) ** 2 * t * (px / 2) + 3 * (1 - t) * t ** 2 * px + t ** 3 * (APP_WIDTH / 2),
@@ -28,9 +31,14 @@ class Squad:
             chosen.dy = -1
 
         [enemy.update(self.x,self.y)for row in self.list for enemy in row]
+
+        # player update
+
     
     def draw(self):
         [enemy.draw()for row in self.list for enemy in row]
+
+        pyxel.circ(self.playerx,self.playery,3,7)
 
 class Enemy:
     def __init__(self, rx, ry, num, squad_x,squad_y):
@@ -67,6 +75,13 @@ class Enemy:
     def draw(self):
         u = 2 + (0 < self.dx) if self.is_flying else (self.anim_pattern // 30) % 2
         pyxel.blt(self.x, self.y, 0, u * CHAR_SIZE, (self.num + 3) * CHAR_SIZE, CHAR_SIZE, CHAR_SIZE, 0)
+
+        # debug display
+        if self.is_flying: 
+            pyxel.text(self.x, self.y + 16, f'{int(self.x)},{int(self.y)}', 7)
+            for p1, p2 in zip(self.trajectory, self.trajectory[1:]):
+                pyxel.line(p1[0], p1[1], p2[0], p2[1], 7)
+                pyxel.circ(p2[0], p2[1], 2,7)
 
 class App:
     def __init__(self):
