@@ -21,14 +21,13 @@ class Squad:
             chosen.dx = (-1, 1)[pyxel.rndi(0, 1)]                               # random direction
             chosen.fly()
 
-enemy_group = Squad()
 
 class Teki:
     def __init__(self, rx, ry, num):
         self.rposx, self.rposy = rx, ry
         self.num = min(3, num)
         self.cnt = self.is_flying = self.is_return = 0
-        self.x, self.y = enemy_group.x + self.rposx, enemy_group.y + self.rposy
+        self.x, self.y = App.enemy_group.x + self.rposx, App.enemy_group.y + self.rposy
         self.dx, self.dy, self.trajectory = 0, 0, []
 
     def move(self, tx, ty):
@@ -42,7 +41,7 @@ class Teki:
     def update(self):
         self.cnt += 1
         if self.is_return:
-            if self.move(enemy_group.x + self.rposx, enemy_group.y + self.rposy):
+            if self.move(App.enemy_group.x + self.rposx, App.enemy_group.y + self.rposy):
                 self.is_flying, self.is_return = False, False
         elif self.is_flying:
             if self.trajectory and self.move(*self.trajectory[0]):
@@ -50,7 +49,7 @@ class Teki:
             if self.y > APP_HEIGHT + 32:
                 self.is_return, self.y, self.x = True, -CHAR_SIZE * 2, APP_WIDTH / 2
         else:
-            self.x, self.y = enemy_group.x + self.rposx, enemy_group.y + self.rposy
+            self.x, self.y = App.enemy_group.x + self.rposx, App.enemy_group.y + self.rposy
 
     def draw(self):
         u = 2 + (0 < self.dx) if self.is_flying else (self.cnt // 30) % 2
@@ -66,18 +65,20 @@ class Teki:
         self.dy = -1
 
 class App:
+    enemy_group = Squad()
+    
     def __init__(self):
         pyxel.init(APP_WIDTH, APP_HEIGHT, title="Kanixian MOD", fps=120)
         pyxel.load("kani.pyxres")
-        enemy_group.list = [[Teki(x * 10, i * 20, i) for x in R] for i, R in enumerate([(10, 20), range(2, 30, 2)] + [range(0, 32, 2)] * 5)]
+        App.enemy_group.list = [[Teki(x * 10, i * 20, i) for x in R] for i, R in enumerate([(10, 20), range(2, 30, 2)] + [range(0, 32, 2)] * 5)]
         pyxel.run(self.update, self.draw)
 
     def update(self):
-        enemy_group.update()
-        [teki.update()for row in enemy_group.list for teki in row]
+        App.enemy_group.update()
+        [teki.update()for row in App.enemy_group.list for teki in row]
                 
     def draw(self):
         pyxel.cls(0)
-        [teki.draw()for row in enemy_group.list for teki in row]
+        [teki.draw()for row in App.enemy_group.list for teki in row]
                 
 App()
