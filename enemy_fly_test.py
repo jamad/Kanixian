@@ -6,8 +6,8 @@ CHAR_SIZE = 16
 class Squad:
     def __init__(self):
         self.x, self.y = CHAR_SIZE * 6, CHAR_SIZE * 4
-        self.dx = 0.2                                                   # horizontal move speed
-        self.list = []
+        self.list = [[Teki(x*10, i*20, i, self.x, self.y) for x in R] for i, R in enumerate([(10, 20), range(2, 30, 2)] + [range(0, 32, 2)]*5)]
+        self.dx = 0.2                                                           # horizontal move speed
 
     def update(self):
         self.x += self.dx                                                       # horizontal move
@@ -21,13 +21,12 @@ class Squad:
             chosen.dx = (-1, 1)[pyxel.rndi(0, 1)]                               # random direction
             chosen.fly()
 
-
 class Teki:
-    def __init__(self, rx, ry, num):
+    def __init__(self, rx, ry, num, squad_x,squad_y):
         self.rposx, self.rposy = rx, ry
         self.num = min(3, num)
         self.cnt = self.is_flying = self.is_return = 0
-        self.x, self.y = App.enemy_group.x + self.rposx, App.enemy_group.y + self.rposy
+        self.x, self.y = squad_x + self.rposx, squad_y + self.rposy
         self.dx, self.dy, self.trajectory = 0, 0, []
 
     def move(self, tx, ty):
@@ -41,13 +40,13 @@ class Teki:
     def update(self):
         self.cnt += 1
         if self.is_return:
-            if self.move(App.enemy_group.x + self.rposx, App.enemy_group.y + self.rposy):
-                self.is_flying, self.is_return = False, False
+            if self.move(App.enemy_group.x + self.rposx, App.enemy_group.y + self.rposy): # move and if it reached the destination
+                self.is_flying = self.is_return = 0
         elif self.is_flying:
-            if self.trajectory and self.move(*self.trajectory[0]):
-                self.trajectory.pop(0)
+            if self.trajectory and self.move(*self.trajectory[-1]):                       # if arrived at destination, next destination
+                self.trajectory.pop()
             if self.y > APP_HEIGHT + 32:
-                self.is_return, self.y, self.x = True, -CHAR_SIZE * 2, APP_WIDTH / 2
+                self.is_return, self.y, self.x = True, -CHAR_SIZE * 2, APP_WIDTH / 2      # teleporting
         else:
             self.x, self.y = App.enemy_group.x + self.rposx, App.enemy_group.y + self.rposy
 
@@ -58,10 +57,12 @@ class Teki:
     def fly(self):
         self.is_flying = True
         px,py=self.x + 50, self.y + 1000
-        self.trajectory =  [[
+        self.trajectory =  [
+            [
             (1 - t) ** 3 * self.x + 3 * (1 - t) ** 2 * t * (px / 2) + 3 * (1 - t) * t ** 2 * px + t ** 3 * (APP_WIDTH / 2),
             (1 - t) ** 3 * self.y + 3 * (1 - t) ** 2 * t * (py / 2) + 3 * (1 - t) * t ** 2 * py + t ** 3 * (APP_HEIGHT + 64)
-        ] for i in range(10) for t in [(i + 1) / 11]]
+            ] for i in range(10) for t in [(i + 1) / 11]]
+        self.trajectory.reverse()
         self.dy = -1
 
 class App:
@@ -70,7 +71,6 @@ class App:
     def __init__(self):
         pyxel.init(APP_WIDTH, APP_HEIGHT, title="Kanixian MOD", fps=120)
         pyxel.load("kani.pyxres")
-        App.enemy_group.list = [[Teki(x * 10, i * 20, i) for x in R] for i, R in enumerate([(10, 20), range(2, 30, 2)] + [range(0, 32, 2)] * 5)]
         pyxel.run(self.update, self.draw)
 
     def update(self):
