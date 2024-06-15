@@ -30,22 +30,22 @@ class Squad:
             px,py=chosen.x + self.playerx, chosen.y + self.playery
             
             
-            chosen.trajectory =  []
-            #'''
-            for i in range(10,0,-1):
-                t=i/10
+            u,v = chosen.x, chosen.y
+            a,b= self.playerx, self.playery
 
-                a,b=chosen.x, chosen.y
-                
-                u,v= self.playerx, self.playery
-                
-                px,py=a + u, b+ v
-                
-                x=(1 - t) ** 3 * a + 3 * (1 - t) ** 2 * t * (px / 2) + 3 * (1 - t) * t ** 2 * px + t ** 3 * (APP_WIDTH / 2)
-                y=(1 - t) ** 3 * b + 3 * (1 - t) ** 2 * t * (py / 2) + 3 * (1 - t) * t ** 2 * py + t ** 3 * (APP_HEIGHT + 64)
-                
-                chosen.trajectory.append([x,y])
+            chosen.trajectory =  []
             
+            dx=max(CHAR_SIZE, (a-u)/10) # 敵と自機の間隔を10分割したデルタを考える そしてキャラクターのサイズよりデルタは大きくする
+
+            __x=u
+            while 1:
+                __y=0.1*(__x-u)*(__x-a)*(__x-(a+u)/2)+(b-v)/(a-u)*(__x-u)+v
+                chosen.trajectory.append([__x,__y])
+                if __x<0 or APP_WIDTH<__x or __y<0 or APP_HEIGHT<__y:break
+                __x+=dx
+
+            print(dx,chosen.trajectory)
+                            
             #'''
             '''
             #chosen.trajectory = [[self.x+32*self.dx,self.y-32],[self.x+64*self.dx,self.y+10],[self.x-16+16*self.dx,self.y+20]]
