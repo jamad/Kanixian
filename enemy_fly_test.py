@@ -22,23 +22,81 @@ class Squad:
             chosen = enemies[pyxel.rndi(0, len(enemies) - 1)]
             chosen.is_flying = True
             chosen.dx = (-1, 1)[pyxel.rndi(0, 1)]                               # random direction
+            
+
+
+
+
             px,py=chosen.x + self.playerx, chosen.y + self.playery
-            chosen.trajectory =  [
-                [
-                (1 - t) ** 3 * chosen.x + 3 * (1 - t) ** 2 * t * (px / 2) + 3 * (1 - t) * t ** 2 * px + t ** 3 * (APP_WIDTH / 2),
-                (1 - t) ** 3 * chosen.y + 3 * (1 - t) ** 2 * t * (py / 2) + 3 * (1 - t) * t ** 2 * py + t ** 3 * (APP_HEIGHT + 64)
-                ] for i in range(9,-1,-1) for t in [(i + 1) / 11]]
+            
+            
+            chosen.trajectory =  []
+            #'''
+            for i in range(10,0,-1):
+                t=i/10
+
+                a,b=chosen.x, chosen.y
+                
+                u,v= self.playerx, self.playery
+                
+                px,py=a + u, b+ v
+                
+                x=(1 - t) ** 3 * a + 3 * (1 - t) ** 2 * t * (px / 2) + 3 * (1 - t) * t ** 2 * px + t ** 3 * (APP_WIDTH / 2)
+                y=(1 - t) ** 3 * b + 3 * (1 - t) ** 2 * t * (py / 2) + 3 * (1 - t) * t ** 2 * py + t ** 3 * (APP_HEIGHT + 64)
+                
+                chosen.trajectory.append([x,y])
+            
+            #'''
+            '''
+            #chosen.trajectory = [[self.x+32*self.dx,self.y-32],[self.x+64*self.dx,self.y+10],[self.x-16+16*self.dx,self.y+20]]
+            #chosen.trajectory +=[[px/4,py/4], [px/3,py/3], [px/2,py/2],  [px/3*2,py/3*2],[px/4*3,py/4*3],[self.playerx,self.playery],[px/2*3,py/2*3],[self.x, APP_HEIGHT+64]] # last pos should be out of screen
+            #chosen.trajectory.reverse()
+            '''
+            
+            '''
+            chosen.trajectory =  []
+            for i in range(9, -1, -1):
+                for t in [(i + 1) / 11]:
+                    x = t
+                    # 数式から軌道を計算
+                    y = 0.1*(x-self.playerx)*(x-chosen.x)*(x-(self.playerx+chosen.x)/2)+(chosen.y-self.playery)/(chosen.x-self.playerx)*(x-self.playerx)+self.playery
+                    
+                    chosen.trajectory.append([x, y])
+            '''
+
             chosen.dy = -1
 
         [enemy.update(self.x,self.y)for row in self.list for enemy in row]
 
         # player update
 
+        move_R=pyxel.btn(pyxel.KEY_RIGHT)   or  10000 <pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTX)<36000      or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT)
+        move_L=pyxel.btn(pyxel.KEY_LEFT)    or  -36000<pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTX)<-10000     or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_LEFT)
+        move_D=pyxel.btn(pyxel.KEY_DOWN)    or  10000 <pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTY)<36000      or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_DOWN)
+        move_U=pyxel.btn(pyxel.KEY_UP)      or  -36000<pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTY)<-10000     or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_UP)
+
+        player_dx=move_R or -move_L # 1 or -1 or 0
+        player_dy=move_D or -move_U # 1 or -1 or 0
+
+        self.playerx = min(APP_WIDTH -CHAR_SIZE,max(0, self.playerx+player_dx))# clamping
+        self.playery = min(APP_HEIGHT-CHAR_SIZE,max(0, self.playery+player_dy)) # extended y move , and clamping
     
     def draw(self):
         [enemy.draw()for row in self.list for enemy in row]
+        
+        # 
+        for row in self.list:
+            for enemy in row:
+                if enemy.is_flying:
+                    pyxel.circ(enemy.x+self.playerx,enemy.y+self.playery,3,6)
+                    
 
+        # player position
         pyxel.circ(self.playerx,self.playery,3,7)
+        pyxel.text(self.playerx,self.playery + 16, f'{int(self.playerx)},{int(self.playery)}', 7)
+
+
+    
 
 class Enemy:
     def __init__(self, rx, ry, num, squad_x,squad_y):
@@ -81,7 +139,7 @@ class Enemy:
             pyxel.text(self.x, self.y + 16, f'{int(self.x)},{int(self.y)}', 7)
             for p1, p2 in zip(self.trajectory, self.trajectory[1:]):
                 pyxel.line(p1[0], p1[1], p2[0], p2[1], 7)
-                pyxel.circ(p2[0], p2[1], 2,7)
+                pyxel.circ(p1[0], p1[1], 2,7)
 
 class App:
     def __init__(self):
