@@ -58,14 +58,12 @@ class Teki:
 
     def fly(self):
         self.is_flying = True
-        self.trajectory = self.generate_smooth_trajectory(self.x + 50, self.y + 1000)
-        self.dy = -1
-
-    def generate_smooth_trajectory(self, px, py):
-        return [[
+        px,py=self.x + 50, self.y + 1000
+        self.trajectory =  [[
             (1 - t) ** 3 * self.x + 3 * (1 - t) ** 2 * t * (px / 2) + 3 * (1 - t) * t ** 2 * px + t ** 3 * (APP_WIDTH / 2),
             (1 - t) ** 3 * self.y + 3 * (1 - t) ** 2 * t * (py / 2) + 3 * (1 - t) * t ** 2 * py + t ** 3 * (APP_HEIGHT + 64)
         ] for i in range(10) for t in [(i + 1) / 11]]
+        self.dy = -1
 
 class App:
     stage_number = 0
