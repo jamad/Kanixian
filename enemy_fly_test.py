@@ -6,8 +6,6 @@ APP_WIDTH = 480
 APP_HEIGHT = 640
 CHAR_SIZE=16 
 
-
-
 class Squad:
     def __init__(self):
         self.x, self.y = CHAR_SIZE*6, CHAR_SIZE*4
@@ -24,35 +22,17 @@ class Squad:
         if not (CHAR_SIZE <= self.x <= CHAR_SIZE*9): self.dx *= -1 # reverse direction
 
         ### 移動開始させるかどうかの判定
-        attack_interval=max(1,60-App.stage_number*4)# dynamic interval dependent on stage number
+        attack_interval=15 # 0.25 sec each
 
         if pyxel.frame_count % attack_interval == 0:
-            print(f'debug teki_flyable:{App.flyable_enemy_count} @ {pyxel.frame_count}')
 
-            if App.flyable_enemy_count:
-                App.flyable_enemy_count -= 1
-                enemy_alive=[enemy for row in enemy_group.list for enemy in row]
-                chosen=enemy_alive[pyxel.rndi(0,len(enemy_alive)-1)] # choose at random
-                chosen.is_flying = True
-                chosen.dx= (-1,1)[pyxel.rndi(0,1)]
-                chosen.fly()
-                
-        ### list中の敵が弾に当たったかの判定と削除
-        for row in reversed(range(len(enemy_group.list))):
-            for teki in self.list[row]:
-                for bullet in App.bullet_list:
-                    if bullet.check_hit(teki.x,teki.y):
-                        App.flyable_enemy_count+=teki.is_flying                                     # another enemy can fly 
-                        ds =teki.is_flying and (30,150)[row==0]or 10                                # set delta of score
-                        App.score += ds                                                             # increase score
-                        App.message_list.append(Message(teki.x+4+2*(ds==150),teki.y+6,f"{ds}"))     # add score text
-                        self.list[row].remove(teki)                                                 # remove enemy
-                        App.bullet_list.remove(bullet)                                              # remove bullet
-                        pyxel.play(1,1)                                                             # play sound effect
-
+            enemy_alive=[enemy for row in enemy_group.list for enemy in row]
+            chosen=enemy_alive[pyxel.rndi(0,len(enemy_alive)-1)] # choose at random
+            chosen.is_flying = True
+            chosen.dx= (-1,1)[pyxel.rndi(0,1)]
+            chosen.fly()
 
 enemy_group = Squad() 
-
 
 import math
 
@@ -100,16 +80,11 @@ class Teki:
                 if self.move(tx, ty):
                     self.trajectory.pop(0)
 
-                # Adjust bullet shoot range
-                if 100 - App.stage_number < self.y < 104 + App.stage_number:
-                    App.tekibullets.append(TekiBullet(self.x - 16 + pyxel.rndi(0, 16), self.y + 16, (self.dx * pyxel.rndf(1, 2)) / 4))
-
                 # Teleport enemy to top of the screen if out of screen
                 if APP_HEIGHT + 32 < self.y:
                     self.is_return = True
                     self.y = -CHAR_SIZE * 2
                     self.x = APP_WIDTH / 2
-                    App.flyable_enemy_count += 1
 
         else:
             self.x = enemy_group.x + self.rposx
@@ -151,33 +126,10 @@ class Teki:
         return abs(shipx - self.x) < 12 and abs(shipy - self.y) < 12
 
 
-class BulletBase:
-    def __init__(self, x, y, dx=0, dy=0, w=2, h=4, c=10) -> None:
-        self.x,self.y  = x, y
-        self.dx , self.dy = dx, dy
-        self.whc =(w,h,c) # width , height, color
-    
-    def update(self):
-        self.x += self.dx
-        self.y += self.dy
-    
-    def draw(self):
-        pyxel.rect(self.x, self.y, *self.whc)
-
-
-class TekiBullet(BulletBase):
-    def __init__(self, x, y, dx) -> None:
-        super().__init__(x, y, dx=dx, dy=1, h=8, c=7)
-    
-    def check_hit(self, shipx, shipy):
-        return self.x - CHAR_SIZE + 2 < shipx < self.x - 2 and self.y - CHAR_SIZE + 2 < shipy < self.y - 2
-
-
 
 class App:
     # moved global variable here by using App.variablename 
     score = 0
-    flyable_enemy_count=0
     stage_number=0 
     message_list = []# moved the variable here instead of global variable
     bullet_list = []
@@ -186,26 +138,14 @@ class App:
     def __init__(self):
         pyxel.init(APP_WIDTH,APP_HEIGHT,title="Kanixian MOD",fps=120,display_scale=1) 
         pyxel.load("kani.pyxres")
-        try:
-            with open("hiscore.txt","r") as f:self.hiscore = int(f.readline())
-        except:
-            self.hiscore=0
 
-        self.init_game()
         pyxel.run(self.update,self.draw)
 
-    def init_game(self):
-        App.stage_number=0
-
-        if App.score > self.hiscore:
-            self.hiscore = App.score
-            with open("hiscore.txt","w") as f:f.write(f'{self.hiscore}')
 
     def init_stage(self):
         App.bullet_list = []# need to empty otherwise, instant death could happen
         App.tekibullets = []# need to empty otherwise, instant death could happen
         App.stage_number += 1
-        App.flyable_enemy_count = App.stage_number + 1 # simultaneous fly increases
         self.counter = 0
         MAX_COL_NUM=16*2
         enemy_group.list = [[Teki(x*10,i*20,i)for x in R] for i, R in enumerate( [(4+3*2,10+5*2),range(2,MAX_COL_NUM-2,2)]+[range(0,MAX_COL_NUM,2)]*5 )]
