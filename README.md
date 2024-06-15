@@ -1,5 +1,7 @@
 # Kanixian mod (wip)
 
+* library : https://github.com/kitao/pyxel
+
 ## 概要
 - fork して改変することでプログラミングを学習中
 
