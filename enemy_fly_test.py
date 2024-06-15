@@ -6,7 +6,7 @@ CHAR_SIZE = 16
 class Squad:
     def __init__(self):
         self.x, self.y = CHAR_SIZE * 6, CHAR_SIZE * 4
-        self.list = [[Teki(x*10, i*20, i, self.x, self.y) for x in R] for i, R in enumerate([(10, 20), range(2, 30, 2)] + [range(0, 32, 2)]*5)]
+        self.list = [[Enemy(x*10, i*20, i, self.x, self.y) for x in R] for i, R in enumerate([(10, 20), range(2, 30, 2)] + [range(0, 32, 2)]*5)]
         self.dx = 0.2                                                           # horizontal move speed
 
     def update(self):
@@ -21,10 +21,12 @@ class Squad:
             chosen.dx = (-1, 1)[pyxel.rndi(0, 1)]                               # random direction
             chosen.fly()
 
-        
-        [teki.update(self.x,self.y)for row in self.list for teki in row]
+        [enemy.update(self.x,self.y)for row in self.list for enemy in row]
+    
+    def draw(self):
+        [enemy.draw()for row in self.list for enemy in row]
 
-class Teki:
+class Enemy:
     def __init__(self, rx, ry, num, squad_x,squad_y):
         self.rposx, self.rposy = rx, ry
         self.num = min(3, num)
@@ -69,18 +71,17 @@ class Teki:
         self.dy = -1
 
 class App:
-    
     def __init__(self):
         pyxel.init(APP_WIDTH, APP_HEIGHT, title="Kanixian MOD", fps=120)
         pyxel.load("kani.pyxres")
-        self.enemy_group = Squad()
+        self.squad = Squad()
         pyxel.run(self.update, self.draw)
 
     def update(self):
-        self.enemy_group.update()
+        self.squad.update()
                 
     def draw(self):
         pyxel.cls(0)
-        [teki.draw()for row in self.enemy_group.list for teki in row]
+        self.squad.draw()
                 
 App()
