@@ -9,7 +9,7 @@
 - [play via wasm](https://kitao.github.io/pyxel/wasm/launcher/?run=jamad.Kanixian.Kanixian240) : game could start by Enter key , then playable by arrow keys and Space key ( gamepad is not usable, though I don't know why yet) 
 - play by running .py : arrow keys and Space key as well as gamepad (anaglog-Stick / Dpad +  A / B) 
 
-## Note during the modding
+## Note during my updates
  
 |-|-|
 |-|-|
