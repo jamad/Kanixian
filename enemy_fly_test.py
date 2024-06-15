@@ -21,6 +21,9 @@ class Squad:
             chosen.dx = (-1, 1)[pyxel.rndi(0, 1)]                               # random direction
             chosen.fly()
 
+        
+        [teki.update(self.x,self.y)for row in self.list for teki in row]
+
 class Teki:
     def __init__(self, rx, ry, num, squad_x,squad_y):
         self.rposx, self.rposy = rx, ry
@@ -37,10 +40,10 @@ class Teki:
         self.y += self.dy
         return dist < 1
 
-    def update(self):
+    def update(self,squad_x,squad_y):
         self.cnt += 1
         if self.is_return:
-            if self.move(App.enemy_group.x + self.rposx, App.enemy_group.y + self.rposy): # move and if it reached the destination
+            if self.move(squad_x + self.rposx, squad_y + self.rposy): # move and if it reached the destination
                 self.is_flying = self.is_return = 0
         elif self.is_flying:
             if self.trajectory and self.move(*self.trajectory[-1]):                       # if arrived at destination, next destination
@@ -48,7 +51,7 @@ class Teki:
             if self.y > APP_HEIGHT + 32:
                 self.is_return, self.y, self.x = True, -CHAR_SIZE * 2, APP_WIDTH / 2      # teleporting
         else:
-            self.x, self.y = App.enemy_group.x + self.rposx, App.enemy_group.y + self.rposy
+            self.x, self.y = squad_x + self.rposx, squad_y + self.rposy
 
     def draw(self):
         u = 2 + (0 < self.dx) if self.is_flying else (self.cnt // 30) % 2
@@ -66,19 +69,18 @@ class Teki:
         self.dy = -1
 
 class App:
-    enemy_group = Squad()
     
     def __init__(self):
         pyxel.init(APP_WIDTH, APP_HEIGHT, title="Kanixian MOD", fps=120)
         pyxel.load("kani.pyxres")
+        self.enemy_group = Squad()
         pyxel.run(self.update, self.draw)
 
     def update(self):
-        App.enemy_group.update()
-        [teki.update()for row in App.enemy_group.list for teki in row]
+        self.enemy_group.update()
                 
     def draw(self):
         pyxel.cls(0)
-        [teki.draw()for row in App.enemy_group.list for teki in row]
+        [teki.draw()for row in self.enemy_group.list for teki in row]
                 
 App()
