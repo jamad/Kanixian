@@ -6,6 +6,16 @@ APP_WIDTH = 480
 APP_HEIGHT = 640
 CHAR_SIZE=16 
 
+def playercontrol(): # my function to return player's movement
+    move_R=pyxel.btn(pyxel.KEY_RIGHT)   or  10000 <pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTX)<36000      or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT)
+    move_L=pyxel.btn(pyxel.KEY_LEFT)    or  -36000<pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTX)<-10000     or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_LEFT)
+    move_D=pyxel.btn(pyxel.KEY_DOWN)    or  10000 <pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTY)<36000      or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_DOWN)
+    move_U=pyxel.btn(pyxel.KEY_UP)      or  -36000<pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTY)<-10000     or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_UP)
+
+    player_dx=move_R or -move_L # 1 or -1 or 0
+    player_dy=move_D or -move_U # 1 or -1 or 0
+    return (player_dx,player_dy ,move_R*2 or move_L*3 or 4 ) # 2 or 3 or 4)
+
 class Star:
     def __init__(self):
         self.x = pyxel.rndi(0,APP_WIDTH )
@@ -244,15 +254,9 @@ class Myship:
         self.img=4 # default image to display
 
     def update(self): ### user input to move myship
-        move_R=pyxel.btn(pyxel.KEY_RIGHT)   or  10000 <pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTX)<36000      or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT)
-        move_L=pyxel.btn(pyxel.KEY_LEFT)    or  -36000<pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTX)<-10000     or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_LEFT)
-        move_D=pyxel.btn(pyxel.KEY_DOWN)    or  10000 <pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTY)<36000      or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_DOWN)
-        move_U=pyxel.btn(pyxel.KEY_UP)      or  -36000<pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTY)<-10000     or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_UP)
-
-        dx=move_R or -move_L # 1 or -1 or 0
-        dy=move_D or -move_U # 1 or -1 or 0
-        self.img=move_R*2 or move_L*3 or 4 # 2 or 3 or 4
-
+        # player update
+        dx,dy,self.img= playercontrol()
+        
         self.x = min(APP_WIDTH -CHAR_SIZE,max(0, self.x+dx))# clamping
         self.y = min(APP_HEIGHT-CHAR_SIZE,max(0, self.y+dy)) # extended y move , and clamping
 
