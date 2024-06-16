@@ -77,81 +77,133 @@ class Squad:
 
 enemy_group = Squad() 
 
+
+import math
+
 class Teki:
-    def __init__(self,rx,ry,num): # rx,ry: relative position in group, num: row id from top
+    def __init__(self, rx, ry, num):
         self.rposx = rx
         self.rposy = ry
-        self.num = min(3,num)
-        self.cnt = pyxel.rndi(0,60) # used for animation pattern randomness
-        self.is_flying = False # flying
+        self.num = min(3, num)
+        self.cnt = 0  # Initialize animation counter
+        self.is_flying = False
         self.is_return = False
-        self.x = enemy_group.x + self.rposx # final position to draw
+        self.x = enemy_group.x + self.rposx
         self.y = enemy_group.y + self.rposy
-        self.dx=0
-        self.dy=0
+        self.dx = 0
+        self.dy = 0
         self.trajectory = []
 
-    def move(self,tx,ty):
-        vx=tx-self.x
-        vy=ty-self.y
-        dist = (vx*vx + vy*vy)**.5
-        self.dx = vx / dist * 2
-        self.dy = vy / dist * 2
+    def move(self, tx, ty):
+        vx = tx - self.x
+        vy = ty - self.y
+        dist = math.sqrt(vx * vx + vy * vy)
+        if dist < 1:
+            self.dx = vx
+            self.dy = vy
+        else:
+            self.dx = vx / dist * 2
+            self.dy = vy / dist * 2
         self.x += self.dx
         self.y += self.dy
-
-        return abs(vx)<1 and abs(vy)<1
+        return dist < 1
 
     def update(self):
         self.cnt += 1
 
-        # returning, flying or moving as the group member
-        if self.is_return: 
-            # enemy is out of screen, returning to the target position aka default position
-            tx=enemy_group.x + self.rposx
-            ty=enemy_group.y + self.rposy
-            if self.move(tx,ty): # if arrived the destination
-                self.is_flying = False # otherwise, enemy starts to fly again
+        if self.is_return:
+            tx = enemy_group.x + self.rposx
+            ty = enemy_group.y + self.rposy
+            if self.move(tx, ty):
+                self.is_flying = False
                 self.is_return = False
 
         elif self.is_flying:
-            # enemy is not in squad any more, flying along its trajectory
-            tx,ty = self.trajectory[0]# target position
-            if self.move(tx,ty): # if arrived the destination, next target
-                self.trajectory.pop(0)
+            if len(self.trajectory) > 0:
+                tx, ty = self.trajectory[0]
+                if self.move(tx, ty):
+                    self.trajectory.pop(0)
 
-            if 100 - App.stage_number < self.y < 104 + App.stage_number: # enemy bullet shoot range : extend it by stage number
-                App.tekibullets.append(TekiBullet(self.x-16+pyxel.rndi(0,16) , self.y+16 , (self.dx * pyxel.rndf(1,2))/4))
+                # Adjust bullet shoot range
+                if 100 - App.stage_number < self.y < 104 + App.stage_number:
+                    App.tekibullets.append(TekiBullet(self.x - 16 + pyxel.rndi(0, 16), self.y + 16, (self.dx * pyxel.rndf(1, 2)) / 4))
 
-            if APP_HEIGHT + 32 < self.y : # out of screen, so teleport it to the top of the screen
-                self.is_return = True
-                self.y = -CHAR_SIZE*2
-                self.x = APP_WIDTH / 2
-                App.flyable_enemy_count += 1
-            
+                # Teleport enemy to top of the screen if out of screen
+                if APP_HEIGHT + 32 < self.y:
+                    self.is_return = True
+                    self.y = -CHAR_SIZE * 2
+                    self.x = APP_WIDTH / 2
+                    App.flyable_enemy_count += 1
+
         else:
-            # default behavior : enemy moves as the group
             self.x = enemy_group.x + self.rposx
             self.y = enemy_group.y + self.rposy
 
     def draw(self):
-        # pyxel.blt(x,y,atlas_image,u,v,w,h, mask_color) 
-        u=self.is_flying and 2+(0<self.dx) or (self.cnt//30)%2  # animation pattern 
-        v=self.num+3 # enemy color by row id
-        pyxel.blt(self.x,self.y,0, u*16 ,v*16 ,16,16,0)
+        u = self.is_flying and 2 + (0 < self.dx) or (self.cnt // 30) % 2
+        v = self.num + 3
+        pyxel.blt(self.x, self.y, 0, u * 16, v * 16, 16, 16, 0)
 
         if debugdisp and self.is_flying:
-            pyxel.text(self.x,self.y+16,f'{int(self.x)},{int(self.y)}',7)
-            for p1,p2 in zip(self.trajectory,self.trajectory[1:]):
+            pyxel.text(self.x, self.y + 16, f'{int(self.x)},{int(self.y)}', 7)
+            for p1, p2 in zip(self.trajectory, self.trajectory[1:]):
                 pyxel.line(p1[0], p1[1], p2[0], p2[1], 7)
 
-    def fly(self): # shared logic
+    def fly(self):
         self.is_flying = True
-        px=self.x+myship.x
-        py=self.y+myship.y
-        self.trajectory = [[self.x+32*self.dx,self.y-32],[self.x+64*self.dx,self.y+10],[self.x-16+16*self.dx,self.y+20]]
-        self.trajectory +=[[px/4,py/4], [px/3,py/3], [px/2,py/2],  [px/3*2,py/3*2],[px/4*3,py/4*3],[myship.x,myship.y],[px/2*3,py/2*3],[self.x, APP_HEIGHT+64]] # last pos should be out of screen
-        self.dy = -1
+
+        # trajectory
+        p0x,p0y = self.x, self.y
+        p3x,p3y = myship.x, myship.y
+        
+        # middle point
+        mx=(p0x+p3x)/2
+        my=(p0y+p3y)/2
+
+        vector0_m=(mx-p0x, my-p0y)
+        vector3_m=(mx-p3x, my-p3y)
+
+        side=(-1,1)[pyxel.rndi(0, 1)] 
+        theta1=math.pi/2 * side  # 45degree
+        theta2=theta1/16  # 45degree
+
+        p1x = p0x + vector0_m[0]*math.cos(theta1) - vector0_m[1]*math.sin(theta1)  # rotate vector0_m theta around p0 aka enemy
+        p1y = p0y + vector0_m[0]*math.sin(theta1) + vector0_m[1]*math.cos(theta1)  # rotate vector0_m theta around p0 aka enemy
+
+        p2x = p3x + vector3_m[0]*math.cos(theta2) - vector3_m[1]*math.sin(theta2)  # rotate vector0_m theta around p0 aka player
+        p2y = p3y + vector3_m[0]*math.sin(theta2) + vector3_m[1]*math.cos(theta2)  # rotate vector0_m theta around p0 aka player
+
+        self.trajectory =  []
+        
+        # 敵と自機の間隔を分割したデルタを考える 
+        #dist=(dx**2+dy**2)**.5
+        #dx=dx/dist*16 # unit vector x16
+        #dy=dy/dist*16 # unit vector x16
+
+        self.bezier_points=[(p0x,p0y),(p1x,p1y),(p2x,p2y),(p3x,p3y)]
+
+
+        for T in range(64): # divided by 16 but twice to have the range out of 0<=t<=1 aka t<=2
+            t=T/16
+            u=1-t
+
+            # bezier
+            # n=3  p0,p1,p2,p3
+            # B(t,i,n)= n!/((n-i)!*i!)  * t**i *(1-t)**(n-i)  #### 0<=t<=1
+            # B(t,i,3)=3!/((3-i)!*i!) * t**i *(1-t)**(3-i)
+            # Q(t)=[ p[i]*B(t,i,3)  for i in range(4)]  # i=0,1,2,3
+            # Q(t)=sum ( [ p[i]*3!/((3-i)!*i!) *t**i * (1-t)**(3-i)  for i in range(4)]  )
+            # Q(t): x =  p[0].x*(1-t)**3  +  p[1].x*3* t * (1-t)**2 + p[2].x*3* t**2 * (1-t)  +  p[3].x *t**3
+            # Q(t): y =  p[0].y*(1-t)**3  +  p[1].y*3* t * (1-t)**2 + p[2].y*3* t**2 * (1-t)  +  p[3].y *t**3  
+
+            __x =  p0x*u**3  +  p1x*3*t*u**2 + p2x*3*t**2*u  +  p3x*t**3
+            __y =  p0y*u**3  +  p1y*3*t*u**2 + p2y*3*t**2*u  +  p3y*t**3  
+            self.trajectory.append([__x,__y])
+
+        #self.trajectory.reverse()
+
+        return self.trajectory
+
 
     def check_hit(self,shipx,shipy) :
         return abs(shipx - self.x) < 12 and abs(shipy - self.y) < 12
