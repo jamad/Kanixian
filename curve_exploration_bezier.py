@@ -67,7 +67,7 @@ class Squad:
             self.bezier_points=[(p0x,p0y),(p1x,p1y),(p2x,p2y),(p3x,p3y)]
 
 
-            for T in range(32): # divided by 16 but twice to have the range out of 0<=t<=1 aka t<=2
+            for T in range(64): # divided by 16 but twice to have the range out of 0<=t<=1 aka t<=2
                 t=T/16
                 u=1-t
 
@@ -103,6 +103,12 @@ class Squad:
             for enemy in row:
                 for x,y in self.bezier_points:
                     pyxel.circ(x,y,8,6) 
+                    pyxel.text(x,y + 16, f'{int(x)},{int(y)}', 7)
+
+                for p1,p2 in zip(self.bezier_points,self.bezier_points[1:]):
+                    pyxel.line(p1[0], p1[1], p2[0], p2[1], 7)
+
+
 
         # player position
         pyxel.circ(self.playerx,self.playery,4,7)
@@ -135,7 +141,7 @@ class Enemy:
         elif self.is_flying:
             if self.trajectory and self.move(*self.trajectory[-1]):                       # if arrived at destination, next destination
                 self.trajectory.pop()   # trajectory is changed as stack
-            if self.y > APP_HEIGHT + 32:
+            if not ( -CHAR_SIZE <self.x < APP_WIDTH + CHAR_SIZE) and not ( -CHAR_SIZE <self.y < APP_HEIGHT + CHAR_SIZE)  : # out of screen
                 self.is_return, self.y, self.x = True, -CHAR_SIZE * 2, APP_WIDTH / 2      # teleporting
         else:
             self.x, self.y = x, y
