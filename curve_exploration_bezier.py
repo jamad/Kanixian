@@ -141,7 +141,7 @@ class Enemy:
         elif self.is_flying:
             if self.trajectory and self.move(*self.trajectory[-1]):                       # if arrived at destination, next destination
                 self.trajectory.pop()   # trajectory is changed as stack
-            if not ( -CHAR_SIZE <self.x < APP_WIDTH + CHAR_SIZE) and not ( -CHAR_SIZE <self.y < APP_HEIGHT + CHAR_SIZE)  : # out of screen
+            if not ( -CHAR_SIZE <self.x < APP_WIDTH + CHAR_SIZE and -CHAR_SIZE <self.y < APP_HEIGHT + CHAR_SIZE)  : # out of screen
                 self.is_return, self.y, self.x = True, -CHAR_SIZE * 2, APP_WIDTH / 2      # teleporting
         else:
             self.x, self.y = x, y

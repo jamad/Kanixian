@@ -129,7 +129,7 @@ class Teki:
                     App.tekibullets.append(TekiBullet(self.x - 16 + pyxel.rndi(0, 16), self.y + 16, (self.dx * pyxel.rndf(1, 2)) / 4))
 
                 # Teleport enemy to top of the screen if out of screen
-                if APP_HEIGHT + 32 < self.y:
+                if not ( -CHAR_SIZE <self.x < APP_WIDTH + CHAR_SIZE and -CHAR_SIZE <self.y < APP_HEIGHT + CHAR_SIZE)  : 
                     self.is_return = True
                     self.y = -CHAR_SIZE * 2
                     self.x = APP_WIDTH / 2
