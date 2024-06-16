@@ -40,29 +40,35 @@ class Squad:
 
             chosen.trajectory =  []
             
-            dx=(a-u) # 敵と自機の間隔を10分割したデルタを考える そしてキャラクターのサイズよりデルタは大きくする
+            # 敵と自機の間隔を分割したデルタを考える 
+            dx=(a-u)
             dy=(b-v)
             dist=(dx**2+dy**2)**.5
-
             dx=dx/dist*16 # unit vector x16
             dy=dy/dist*16 # unit vector x16
 
-            #if a<u:dx*=-1 # direction should be opposite
+            __x=u # initial value is u 
 
-            __x=u
+            alpha=0.05/(abs(dx)**2)
+            if a<u:alpha*=-1 # need this to make the last pos below the screen
+
             while 1:
                 
                 # linear
-                __y=(b-v)/(a-u)*(__x-u)+v
+                #__y=(b-v)/(a-u)*(__x-u)+v
                 
                 mx=(a+u)/2
                 my=(b+v)/2
 
-                #__y=1*(__x-u)*(__x-a)*(__x-mx)+(b-v)/(a-u)*(__x-u)+v  # if __x==u, __y=v , if __x==a, __y==b , if __x==mx, __y= my
+                __y=alpha*(__x-u)*(__x-a)*(__x-mx)+(b-v)/(a-u)*(__x-u)+v  # if __x==u, __y=v , if __x==a, __y==b , if __x==mx, __y= my
 
                 chosen.trajectory.append([__x,__y])
-                if __x<0 or APP_WIDTH<__x or __y<0 or APP_HEIGHT<__y:break
+                if  APP_HEIGHT+100<__y:break
                 __x+=dx
+
+            chosen.trajectory.reverse()
+
+            #if chosen.trajectory[0]==u:chosen.trajectory.reverse()
 
         [enemy.update(self.x,self.y)for row in self.list for enemy in row]
 
