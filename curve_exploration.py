@@ -3,6 +3,16 @@ import pyxel, math
 APP_WIDTH, APP_HEIGHT = 480, 640
 CHAR_SIZE = 16
 
+def playercontrol(): # my function to return player's movement
+    move_R=pyxel.btn(pyxel.KEY_RIGHT)   or  10000 <pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTX)<36000      or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT)
+    move_L=pyxel.btn(pyxel.KEY_LEFT)    or  -36000<pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTX)<-10000     or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_LEFT)
+    move_D=pyxel.btn(pyxel.KEY_DOWN)    or  10000 <pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTY)<36000      or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_DOWN)
+    move_U=pyxel.btn(pyxel.KEY_UP)      or  -36000<pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTY)<-10000     or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_UP)
+
+    player_dx=move_R or -move_L # 1 or -1 or 0
+    player_dy=move_D or -move_U # 1 or -1 or 0
+    return (player_dx,player_dy )
+
 class Squad:
     def __init__(self):
         self.dx = 0.2                                                           # horizontal move speed
@@ -22,37 +32,42 @@ class Squad:
             chosen = enemies[pyxel.rndi(0, len(enemies) - 1)]
             chosen.is_flying = True
             chosen.dx = (-1, 1)[pyxel.rndi(0, 1)]                               # random direction
+            chosen.dy = -1
             
-            
+            # trajectory
             u,v = chosen.x, chosen.y
             a,b= self.playerx, self.playery
 
             chosen.trajectory =  []
             
-            dx=max(CHAR_SIZE, (a-u)/10) # 敵と自機の間隔を10分割したデルタを考える そしてキャラクターのサイズよりデルタは大きくする
+            dx=(a-u) # 敵と自機の間隔を10分割したデルタを考える そしてキャラクターのサイズよりデルタは大きくする
+            dy=(b-v)
+            dist=(dx**2+dy**2)**.5
+
+            dx=dx/dist*16 # unit vector x16
+            dy=dy/dist*16 # unit vector x16
+
+            #if a<u:dx*=-1 # direction should be opposite
 
             __x=u
             while 1:
-                __y=0.1*(__x-u)*(__x-a)*(__x-(a+u)/2)+(b-v)/(a-u)*(__x-u)+v
+                
+                # linear
+                __y=(b-v)/(a-u)*(__x-u)+v
+                
+                mx=(a+u)/2
+                my=(b+v)/2
+
+                #__y=1*(__x-u)*(__x-a)*(__x-mx)+(b-v)/(a-u)*(__x-u)+v  # if __x==u, __y=v , if __x==a, __y==b , if __x==mx, __y= my
+
                 chosen.trajectory.append([__x,__y])
                 if __x<0 or APP_WIDTH<__x or __y<0 or APP_HEIGHT<__y:break
                 __x+=dx
 
-                            
-
-            chosen.dy = -1
-
         [enemy.update(self.x,self.y)for row in self.list for enemy in row]
 
         # player update
-
-        move_R=pyxel.btn(pyxel.KEY_RIGHT)   or  10000 <pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTX)<36000      or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT)
-        move_L=pyxel.btn(pyxel.KEY_LEFT)    or  -36000<pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTX)<-10000     or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_LEFT)
-        move_D=pyxel.btn(pyxel.KEY_DOWN)    or  10000 <pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTY)<36000      or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_DOWN)
-        move_U=pyxel.btn(pyxel.KEY_UP)      or  -36000<pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTY)<-10000     or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_UP)
-
-        player_dx=move_R or -move_L # 1 or -1 or 0
-        player_dy=move_D or -move_U # 1 or -1 or 0
+        player_dx,player_dy= playercontrol()
 
         self.playerx = min(APP_WIDTH -CHAR_SIZE,max(0, self.playerx+player_dx))# clamping
         self.playery = min(APP_HEIGHT-CHAR_SIZE,max(0, self.playery+player_dy)) # extended y move , and clamping
@@ -63,7 +78,7 @@ class Squad:
         # (debug) middle point to draw 
         for row in self.list:
             for enemy in row:
-                if enemy.is_flying:
+                if enemy.is_flying and not enemy.is_return:
                     mx=(enemy.x+self.playerx)/2
                     my=(enemy.y+self.playery)/2
                     pyxel.circ(mx,my,3,6) 
