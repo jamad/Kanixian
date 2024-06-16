@@ -47,8 +47,9 @@ class Squad:
             vector0_m=(mx-p0x, my-p0y)
             vector3_m=(mx-p3x, my-p3y)
 
-            theta1=math.pi/2 # 45degree
-            theta2=theta1/4  # 45degree
+            side=(-1,1)[pyxel.rndi(0, 1)] 
+            theta1=math.pi/2 * side  # 45degree
+            theta2=theta1/16  # 45degree
 
             p1x = p0x + vector0_m[0]*math.cos(theta1) - vector0_m[1]*math.sin(theta1)  # rotate vector0_m theta around p0 aka enemy
             p1y = p0y + vector0_m[0]*math.sin(theta1) + vector0_m[1]*math.cos(theta1)  # rotate vector0_m theta around p0 aka enemy
