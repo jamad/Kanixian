@@ -22,6 +22,8 @@ class Squad:
         self.playerx=APP_WIDTH/2
         self.playery=APP_HEIGHT/2
 
+        self.bezier_points=[]
+
     def update(self):
         self.x += self.dx                                                       # horizontal move
         if not (CHAR_SIZE <= self.x <= CHAR_SIZE * 9):self.dx *= -1             # horizontal direction change
@@ -45,13 +47,14 @@ class Squad:
             vector0_m=(mx-p0x, my-p0y)
             vector3_m=(mx-p3x, my-p3y)
 
-            theta=math.pi/4 # 45degree
+            theta1=math.pi/2 # 45degree
+            theta2=theta1/4  # 45degree
 
-            p1x = p0x + vector0_m[0]*math.cos(theta) - vector0_m[1]*math.sin(theta)  # rotate vector0_m theta around p0
-            p1y = p0y + vector0_m[0]*math.sin(theta) + vector0_m[1]*math.cos(theta)  # rotate vector0_m theta around p0   
+            p1x = p0x + vector0_m[0]*math.cos(theta1) - vector0_m[1]*math.sin(theta1)  # rotate vector0_m theta around p0 aka enemy
+            p1y = p0y + vector0_m[0]*math.sin(theta1) + vector0_m[1]*math.cos(theta1)  # rotate vector0_m theta around p0 aka enemy
 
-            p2x = p0x + vector3_m[0]*math.cos(theta) - vector3_m[1]*math.sin(theta)  # rotate vector0_m theta around p0
-            p2y = p0y + vector3_m[0]*math.sin(theta) + vector3_m[1]*math.cos(theta)  # rotate vector0_m theta around p0   
+            p2x = p3x + vector3_m[0]*math.cos(theta2) - vector3_m[1]*math.sin(theta2)  # rotate vector0_m theta around p0 aka player
+            p2y = p3y + vector3_m[0]*math.sin(theta2) + vector3_m[1]*math.cos(theta2)  # rotate vector0_m theta around p0 aka player
 
             chosen.trajectory =  []
             
@@ -60,21 +63,24 @@ class Squad:
             #dx=dx/dist*16 # unit vector x16
             #dy=dy/dist*16 # unit vector x16
 
+            self.bezier_points=[(p0x,p0y),(p1x,p1y),(p2x,p2y),(p3x,p3y)]
 
 
-            # bezier
-            # n=3  p0,p1,p2,p3
-            # B(t,i,n)= n!/((n-i)!*i!)  * t**i *(1-t)**(n-i)  #### 0<=t<=1
-            # B(t,i,3)=3!/((3-i)!*i!) * t**i *(1-t)**(3-i)
-            # Q(t)=[ p[i]*B(t,i,3)  for i in range(4)]  # i=0,1,2,3
-            # Q(t)=sum ( [ p[i]*3!/((3-i)!*i!) *t**i * (1-t)**(3-i)  for i in range(4)]  )
-            # Q(t): x =  p[0].x*(1-t)**3  +  p[1].x*3* t * (1-t)**2 + p[2].x*3* t**2 * (1-t)  +  p[3].x *t**3
-            # Q(t): y =  p[0].y*(1-t)**3  +  p[1].y*3* t * (1-t)**2 + p[2].y*3* t**2 * (1-t)  +  p[3].y *t**3  
-
-            for T in range(32):
+            for T in range(32): # divided by 16 but twice to have the range out of 0<=t<=1 aka t<=2
                 t=T/16
-                __x =  p0x*(1-t)**3  +  p1x*3* t * (1-t)**2 + p2x*3* t**2 * (1-t)  +  p3x *t**3
-                __y =  p0y*(1-t)**3  +  p1y*3* t * (1-t)**2 + p2y*3* t**2 * (1-t)  +  p3y *t**3  
+                u=1-t
+
+                # bezier
+                # n=3  p0,p1,p2,p3
+                # B(t,i,n)= n!/((n-i)!*i!)  * t**i *(1-t)**(n-i)  #### 0<=t<=1
+                # B(t,i,3)=3!/((3-i)!*i!) * t**i *(1-t)**(3-i)
+                # Q(t)=[ p[i]*B(t,i,3)  for i in range(4)]  # i=0,1,2,3
+                # Q(t)=sum ( [ p[i]*3!/((3-i)!*i!) *t**i * (1-t)**(3-i)  for i in range(4)]  )
+                # Q(t): x =  p[0].x*(1-t)**3  +  p[1].x*3* t * (1-t)**2 + p[2].x*3* t**2 * (1-t)  +  p[3].x *t**3
+                # Q(t): y =  p[0].y*(1-t)**3  +  p[1].y*3* t * (1-t)**2 + p[2].y*3* t**2 * (1-t)  +  p[3].y *t**3  
+
+                __x =  p0x*u**3  +  p1x*3*t*u**2 + p2x*3*t**2*u  +  p3x*t**3
+                __y =  p0y*u**3  +  p1y*3*t*u**2 + p2y*3*t**2*u  +  p3y*t**3  
                 chosen.trajectory.append([__x,__y])
 
             chosen.trajectory.reverse()
@@ -94,10 +100,8 @@ class Squad:
         # (debug) middle point to draw 
         for row in self.list:
             for enemy in row:
-                if enemy.is_flying and not enemy.is_return:
-                    mx=(enemy.x+self.playerx)/2
-                    my=(enemy.y+self.playery)/2
-                    pyxel.circ(mx,my,3,6) 
+                for x,y in self.bezier_points:
+                    pyxel.circ(x,y,8,6) 
 
         # player position
         pyxel.circ(self.playerx,self.playery,4,7)
