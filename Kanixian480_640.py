@@ -7,11 +7,10 @@ APP_HEIGHT = 640
 CHAR_SIZE=16 
 
 def playercontrol(): # my function to return player's movement
-    move_R=pyxel.btn(pyxel.KEY_RIGHT)   or  10000 <pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTX)<36000      or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT)
-    move_L=pyxel.btn(pyxel.KEY_LEFT)    or  -36000<pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTX)<-10000     or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_LEFT)
-    move_D=pyxel.btn(pyxel.KEY_DOWN)    or  10000 <pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTY)<36000      or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_DOWN)
-    move_U=pyxel.btn(pyxel.KEY_UP)      or  -36000<pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTY)<-10000     or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_UP)
-
+    move_R=pyxel.btn(pyxel.KEY_RIGHT)   or   10<pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTX)/1000<36      or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT)
+    move_L=pyxel.btn(pyxel.KEY_LEFT)    or  -36<pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTX)/1000<-10     or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_LEFT)
+    move_D=pyxel.btn(pyxel.KEY_DOWN)    or   10<pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTY)/1000<36      or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_DOWN)
+    move_U=pyxel.btn(pyxel.KEY_UP)      or  -36<pyxel.btnv(pyxel.GAMEPAD1_AXIS_LEFTY)/1000<-10     or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_UP)
     player_dx=move_R or -move_L # 1 or -1 or 0
     player_dy=move_D or -move_U # 1 or -1 or 0
     return (player_dx,player_dy ,move_R*2 or move_L*3 or 4 ) # 2 or 3 or 4)
@@ -87,10 +86,7 @@ class Squad:
 
 enemy_group = Squad() 
 
-
-import math
-
-class Teki:
+class Enemy:
     def __init__(self, rx, ry, num):
         self.rposx = rx
         self.rposy = ry
@@ -183,19 +179,14 @@ class Teki:
         p2x = p3x + vector3_m[0]*math.cos(theta2) - vector3_m[1]*math.sin(theta2)  # rotate vector0_m theta around p0 aka player
         p2y = p3y + vector3_m[0]*math.sin(theta2) + vector3_m[1]*math.cos(theta2)  # rotate vector0_m theta around p0 aka player
 
-        self.trajectory =  []
-
         self.bezier_points=[(p0x,p0y),(p1x,p1y),(p2x,p2y),(p3x,p3y)]
 
+        self.trajectory =  []
 
         for T in range(64): # divided by 16 but twice to have the range out of 0<=t<=1 aka t<=2
             t=T/16
             u=1-t
-            __x =  p0x*u**3  +  p1x*3*t*u**2 + p2x*3*t**2*u  +  p3x*t**3
-            __y =  p0y*u**3  +  p1y*3*t*u**2 + p2y*3*t**2*u  +  p3y*t**3  
-            self.trajectory.append([__x,__y])
-
-        #self.trajectory.reverse()
+            self.trajectory.append([p0x*u**3  +  p1x*3*t*u**2 + p2x*3*t**2*u  +  p3x*t**3, p0y*u**3  +  p1y*3*t*u**2 + p2y*3*t**2*u  +  p3y*t**3])
 
         return self.trajectory
 
@@ -239,9 +230,7 @@ class Myship:
         self.img=4 # default image to display
 
     def update(self): ### user input to move myship
-        # player update
         dx,dy,self.img= playercontrol()
-        
         self.x = min(APP_WIDTH -CHAR_SIZE,max(0, self.x+dx))# clamping
         self.y = min(APP_HEIGHT-CHAR_SIZE,max(0, self.y+dy)) # extended y move , and clamping
 
@@ -249,7 +238,6 @@ class Myship:
         pyxel.blt(self.x,self.y,0,self.img*CHAR_SIZE,CHAR_SIZE,CHAR_SIZE,24,0) # change image dependent on its direction
 
 myship = Myship()
-
 
 class App:
     # moved global variable here by using App.variablename 
@@ -289,7 +277,7 @@ class App:
         App.flyable_enemy_count = App.stage_number + 1 # simultaneous fly increases
         self.counter = 0
         MAX_COL_NUM=16*2
-        enemy_group.list = [[Teki(x*10,i*20,i)for x in R] for i, R in enumerate( [(4+3*2,10+5*2),range(2,MAX_COL_NUM-2,2)]+[range(0,MAX_COL_NUM,2)]*5 )]
+        enemy_group.list = [[Enemy(x*10,i*20,i)for x in R] for i, R in enumerate( [(4+3*2,10+5*2),range(2,MAX_COL_NUM-2,2)]+[range(0,MAX_COL_NUM,2)]*5 )]
 
     def update(self):
         for star in self.stars:
