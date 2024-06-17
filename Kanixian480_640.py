@@ -184,11 +184,6 @@ class Teki:
         p2y = p3y + vector3_m[0]*math.sin(theta2) + vector3_m[1]*math.cos(theta2)  # rotate vector0_m theta around p0 aka player
 
         self.trajectory =  []
-        
-        # 敵と自機の間隔を分割したデルタを考える 
-        #dist=(dx**2+dy**2)**.5
-        #dx=dx/dist*16 # unit vector x16
-        #dy=dy/dist*16 # unit vector x16
 
         self.bezier_points=[(p0x,p0y),(p1x,p1y),(p2x,p2y),(p3x,p3y)]
 
@@ -196,16 +191,6 @@ class Teki:
         for T in range(64): # divided by 16 but twice to have the range out of 0<=t<=1 aka t<=2
             t=T/16
             u=1-t
-
-            # bezier
-            # n=3  p0,p1,p2,p3
-            # B(t,i,n)= n!/((n-i)!*i!)  * t**i *(1-t)**(n-i)  #### 0<=t<=1
-            # B(t,i,3)=3!/((3-i)!*i!) * t**i *(1-t)**(3-i)
-            # Q(t)=[ p[i]*B(t,i,3)  for i in range(4)]  # i=0,1,2,3
-            # Q(t)=sum ( [ p[i]*3!/((3-i)!*i!) *t**i * (1-t)**(3-i)  for i in range(4)]  )
-            # Q(t): x =  p[0].x*(1-t)**3  +  p[1].x*3* t * (1-t)**2 + p[2].x*3* t**2 * (1-t)  +  p[3].x *t**3
-            # Q(t): y =  p[0].y*(1-t)**3  +  p[1].y*3* t * (1-t)**2 + p[2].y*3* t**2 * (1-t)  +  p[3].y *t**3  
-
             __x =  p0x*u**3  +  p1x*3*t*u**2 + p2x*3*t**2*u  +  p3x*t**3
             __y =  p0y*u**3  +  p1y*3*t*u**2 + p2y*3*t**2*u  +  p3y*t**3  
             self.trajectory.append([__x,__y])
