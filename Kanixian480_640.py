@@ -1,7 +1,5 @@
 import pyxel , math
 
-debugdisp=0
-
 APP_WIDTH = 480
 APP_HEIGHT = 640
 CHAR_SIZE=16 
@@ -60,7 +58,6 @@ class Squad:
         attack_interval=max(1,60-App.stage_number*4)# dynamic interval dependent on stage number
 
         if pyxel.frame_count % attack_interval == 0:
-            print(f'debug teki_flyable:{App.flyable_enemy_count} @ {pyxel.frame_count}')
 
             if App.flyable_enemy_count:
                 App.flyable_enemy_count -= 1
@@ -82,6 +79,7 @@ class Squad:
                         self.list[row].remove(teki)                                                 # remove enemy
                         App.bullet_list.remove(bullet)                                              # remove bullet
                         pyxel.play(1,1)                                                             # play sound effect
+
 
 
 enemy_group = Squad() 
@@ -150,7 +148,7 @@ class Enemy:
         v = self.num + 3
         pyxel.blt(self.x, self.y, 0, u * 16, v * 16, 16, 16, 0)
 
-        if debugdisp and self.is_flying:
+        if App.debugdisp and self.is_flying:
             pyxel.text(self.x, self.y + 16, f'{int(self.x)},{int(self.y)}', 7)
             for p1, p2 in zip(self.trajectory, self.trajectory[1:]):
                 pyxel.line(p1[0], p1[1], p2[0], p2[1], 7)
@@ -247,6 +245,8 @@ class App:
     message_list = []# moved the variable here instead of global variable
     bullet_list = []
     tekibullets = []
+
+    debugdisp=False # toggle by key `
     
     def __init__(self):
         pyxel.init(APP_WIDTH,APP_HEIGHT,title="Kanixian MOD",fps=120,display_scale=1) 
@@ -280,6 +280,10 @@ class App:
         enemy_group.list = [[Enemy(x*10,i*20,i)for x in R] for i, R in enumerate( [(4+3*2,10+5*2),range(2,MAX_COL_NUM-2,2)]+[range(0,MAX_COL_NUM,2)]*5 )]
 
     def update(self):
+
+        # debug mode
+        if pyxel.btnr(pyxel.KEY_D):
+            App.debugdisp=not App.debugdisp 
         for star in self.stars:
             star.update()
 
@@ -345,7 +349,10 @@ class App:
         # UI 
         pyxel.text( (APP_WIDTH)//5*2,10,    f"HI-SCORE : {self.hiscore}",7) # hi-score to display
 
+
         # debug info
-        if debugdisp:
+        if App.debugdisp:
             pyxel.text( 16,APP_HEIGHT-16,   f"self.is_gaming:{self.is_gaming}" ,7) # score info
+            pyxel.text(16,APP_HEIGHT-32, f'debug teki_flyable:{App.flyable_enemy_count}',7)
+
 App()
